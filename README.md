@@ -48,6 +48,30 @@ const GPT_TITLE_MATCH = "ChatGPT - Your GPT Name";
 - `CLEAR_CONTEXT`: Set to `true` to start fresh conversation each time
 - `AUTO_SUBMIT`: Set to `true` to automatically submit prompts
 
+## Custom GPT Configuration
+
+To get the most out of this extension, you should create a custom ChatGPT configured specifically for job search analysis.
+
+### Creating Your Custom GPT
+
+1. **Navigate to ChatGPT**: Go to [chatgpt.com](https://chatgpt.com) (requires ChatGPT Plus)
+2. **Create New GPT**: Click your profile → "My GPTs" → "Create a GPT"
+3. **Name Your GPT**: Choose a descriptive name (e.g., "Job Search Assistant")
+4. **Configure Instructions**: Add custom instructions that include:
+   - Your resume or key background information
+   - Your skills and experience levels
+   - What you're looking for in job fit analysis
+   - How you want job summaries formatted
+   - Any specific criteria for evaluating opportunities
+
+### Getting Your Custom GPT URL
+
+After creating your GPT:
+1. Click "Publish" to finalize your GPT
+2. Copy the URL from your browser (format: `https://chatgpt.com/g/g-XXXXXXXXX-your-gpt-name`)
+3. Paste this URL into the `CUSTOM_GPT_URL` constant in `background.js`
+4. Update `GPT_TITLE_MATCH` to match your GPT's tab title (usually "ChatGPT - Your GPT Name")
+
 ## Usage
 
 ### Context Menu
