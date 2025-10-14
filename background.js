@@ -299,3 +299,45 @@ async function tryInjectWithTiming(tabId, prompt, { label = "", autoSubmit = fal
     return false;
   }
 }
+
+// --- helper to reuse your existing flow for shortcuts ---
+async function sendSelectionToGpt(actionId) {
+  // 1) get current selection text from the active tab
+  const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!active?.id) return;
+
+  const [{ result: selection = "" } = {}] = await chrome.scripting.executeScript({
+    target: { tabId: active.id },
+    func: () => (getSelection?.() ? String(getSelection()).trim() : "")
+  });
+
+  if (!selection) {
+    // No text selected; silently ignore (or you could open the GPT with a hint)
+    return;
+  }
+
+  // 2) build the same prompt you use for context menu
+  const action = ACTIONS[actionId] || ACTIONS.jobSummary;
+  const prompt = `${action.prefix} ${selection}`;
+
+  // 3) reuse your normal open + inject path
+  const tabId = await openOrFocusGptTab({ clear: CLEAR_CONTEXT });
+  const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const ok1 = await tryInjectWithTiming(tabId, prompt, { label: `kb#${actionId}-attempt#1`, autoSubmit: AUTO_SUBMIT, reqId });
+  if (!ok1) {
+    setTimeout(() =>
+      tryInjectWithTiming(tabId, prompt, { label: `kb#${actionId}-attempt#2`, autoSubmit: AUTO_SUBMIT, reqId }),
+    1200);
+  }
+}
+
+// --- keyboard shortcuts for each sub-action ---
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === "fitMatchShortcut") {
+    await sendSelectionToGpt("fitMatch");
+  } else if (command === "jobSummaryShortcut") {
+    await sendSelectionToGpt("jobSummary");
+  } else if (command === "fitAndSummaryShortcut") {
+    await sendSelectionToGpt("fitAndSummary");
+  }
+});

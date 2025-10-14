@@ -1,12 +1,26 @@
 {
   "manifest_version": 3,
   "name": "Job Search GPT Actions",
-  "version": "1.4.0",
-  "description": "Right-click selected text and send it to your Custom GPT (Fit Match, Job Summary, Fit & Summary).",
-  "permissions": ["contextMenus", "tabs", "scripting", "webNavigation"],
+  "version": "1.5.0",
+  "description": "Right-click or use shortcuts to send selection to Job Search GPT.",
+  "permissions": ["contextMenus", "tabs", "scripting", "activeTab"],
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://chat.openai.com/*"
   ],
-  "background": { "service_worker": "background.js" }
+  "background": { "service_worker": "background.js" },
+  "commands": {
+    "fitMatchShortcut": {
+      "suggested_key": { "default": "Alt+Shift+J" },
+      "description": "Send selection → Fit Match"
+    },
+    "jobSummaryShortcut": {
+      "suggested_key": { "default": "Alt+Shift+K" },
+      "description": "Send selection → Job Summary"
+    },
+    "fitAndSummaryShortcut": {
+      "suggested_key": { "default": "Alt+Shift+L" },
+      "description": "Send selection → Fit & Summary"
+    }
+  }
 }
