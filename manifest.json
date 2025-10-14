@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Job Search GPT Actions",
+  "version": "1.4.0",
+  "description": "Right-click selected text and send it to your Custom GPT (Fit Match, Job Summary, Fit & Summary).",
+  "permissions": ["contextMenus", "tabs", "scripting", "webNavigation"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
+  ],
+  "background": { "service_worker": "background.js" }
+}
