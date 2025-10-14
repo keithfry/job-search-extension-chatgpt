@@ -64,7 +64,7 @@ To get the most out of this extension, you should create a custom ChatGPT config
    - How you want job summaries formatted
    - Any specific criteria for evaluating opportunities
 
-[Example: My Custom Prompt](my-custom-prompt.js)
+[Example: My Custom Prompt](my-custom-prompt.txt)
 
 ### Getting Your Custom GPT URL
 
