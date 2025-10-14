@@ -3,8 +3,11 @@ const CUSTOM_GPT_URL =
   "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach";
 const GPT_TITLE_MATCH = "ChatGPT - Keith Fry's Job Match and Cover Letter Coach";
 
-// NEW: flip this on to always start from a fresh thread
+// Start each request in a fresh thread
 const CLEAR_CONTEXT = true;
+
+// Auto-submit after inserting text
+const AUTO_SUBMIT = true;
 
 const ACTIONS = {
   fitMatch:      { title: "Fit Match",      prefix: "Fit Match:" },
@@ -41,13 +44,13 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
     const tabId = await openOrFocusGptTab({ clear: CLEAR_CONTEXT });
 
     // First attempt shortly after focus
-    await tryInjectWithTiming(tabId, prompt, { label: "attempt#1" });
+    await tryInjectWithTiming(tabId, prompt, { label: "attempt#1", autoSubmit: AUTO_SUBMIT });
     // Backup attempt after a short delay (covers late hydration)
-    setTimeout(() => tryInjectWithTiming(tabId, prompt, { label: "attempt#2" }), 1200);
+    setTimeout(() => tryInjectWithTiming(tabId, prompt, { label: "attempt#2", autoSubmit: AUTO_SUBMIT }), 1200);
   } catch (e) {
     console.warn("[JobSearchExt] Failed to open/focus tab:", e);
     const t = await chrome.tabs.create({ url: CUSTOM_GPT_URL, active: true });
-    setTimeout(() => tryInjectWithTiming(t.id, prompt, { label: "fallback" }), 1200);
+    setTimeout(() => tryInjectWithTiming(t.id, prompt, { label: "fallback", autoSubmit: AUTO_SUBMIT }), 1200);
   }
 });
 
@@ -59,7 +62,6 @@ async function findExistingGptTabByTitle() {
   return candidates.find(t => (t.title || "").toLowerCase().includes(GPT_TITLE_MATCH.toLowerCase()));
 }
 
-// UPDATED: optional `clear` param; if true and a tab exists, we navigate it to the GPT root with a cache-buster
 async function openOrFocusGptTab({ clear = false } = {}) {
   const existing = await findExistingGptTabByTitle();
   if (existing) {
@@ -73,7 +75,7 @@ async function openOrFocusGptTab({ clear = false } = {}) {
     return existing.id;
   }
   const created = await chrome.tabs.create({
-    url: `${CUSTOM_GPT_URL}?fresh=${Date.now()}`, // ensure a new chat on first open as well
+    url: `${CUSTOM_GPT_URL}?fresh=${Date.now()}`, // ensure a new chat
     active: true
   });
   return await waitForTitleMatch(created.id, GPT_TITLE_MATCH, 20000);
@@ -112,13 +114,13 @@ function waitForTitleMatch(tabId, titleSubstring, timeoutMs = 20000) {
   });
 }
 
-// ====== INJECTION (unchanged from your working visible-first inserter) ======
-async function tryInjectWithTiming(tabId, prompt, { label = "" } = {}) {
+// ====== INJECTION (visible-first + auto-submit) ======
+async function tryInjectWithTiming(tabId, prompt, { label = "", autoSubmit = false } = {}) {
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
-      func: (text, label) => {
-        console.log("[JobSearchExt]", label, "inject start (visible-first)");
+      func: (text, label, shouldSubmit) => {
+        console.log("[JobSearchExt]", label, "inject start (visible-first, autoSubmit:", shouldSubmit, ")");
 
         const SELECTORS_ORDERED = [
           // contenteditable variants first
@@ -136,7 +138,7 @@ async function tryInjectWithTiming(tabId, prompt, { label = "" } = {}) {
           "textarea"
         ];
 
-        const MAX_TRIES = 40;   // ~8s
+        const MAX_TRIES = 40;   // ~8s editor finding
         const INTERVAL  = 200;
 
         function isVisible(el) {
@@ -246,11 +248,82 @@ async function tryInjectWithTiming(tabId, prompt, { label = "" } = {}) {
           return false;
         }
 
+        // ===== Submit helpers =====
+        function findSendButton() {
+          const selectors = [
+            "form button[data-testid='send-button']",
+            "button[data-testid='send-button']",
+            "form button[aria-label*='send' i]",
+            "button[aria-label*='send' i]",
+            "form button[type='submit']",
+            "button[type='submit']"
+          ];
+          for (const sel of selectors) {
+            const candidates = queryDeepAll(document, sel).filter(isVisible);
+            if (candidates.length) {
+              console.log("[JobSearchExt]", label, "send button via", sel, candidates[0]);
+              return candidates[0];
+            }
+          }
+          return null;
+        }
+
+        function submitByButtonOrEnter(editorEl) {
+          // try visible send button
+          const btn = findSendButton();
+          if (btn) {
+            // some UIs enable the button a moment after input; try up to ~2s
+            let tries = 0;
+            const max = 10;
+            const tick = () => {
+              const cs = getComputedStyle(btn);
+              const disabled = btn.disabled || cs.pointerEvents === "none" || cs.opacity === "0.5";
+              if (!disabled) {
+                btn.click();
+                console.log("[JobSearchExt]", label, "clicked send button");
+                return;
+              }
+              if (++tries >= max) {
+                console.log("[JobSearchExt]", label, "send button stayed disabled; falling back to Enter");
+                submitByEnter(editorEl);
+                return;
+              }
+              setTimeout(tick, 200);
+            };
+            tick();
+            return;
+          }
+          // fallback: simulate Enter on the editor
+          submitByEnter(editorEl);
+        }
+
+        function submitByEnter(editorEl) {
+          try {
+            editorEl.focus();
+            const opts = { bubbles: true, cancelable: true, key: "Enter", code: "Enter", keyCode: 13, which: 13 };
+            editorEl.dispatchEvent(new KeyboardEvent("keydown", opts));
+            editorEl.dispatchEvent(new KeyboardEvent("keyup", opts));
+            console.log("[JobSearchExt]", label, "sent Enter on editor");
+          } catch {
+            // last resort: try submitting the closest form
+            const form = editorEl.closest && editorEl.closest("form");
+            if (form && form.requestSubmit) {
+              form.requestSubmit();
+              console.log("[JobSearchExt]", label, "form.requestSubmit()");
+            }
+          }
+        }
+
+        // ===== Insert + (optional) auto-submit with retries =====
         let tries = 0;
         const attempt = () => {
           const editor = pickEditor();
           if (editor && setValue(editor, text)) {
             console.log("[JobSearchExt]", label, "inserted successfully.");
+            if (shouldSubmit) {
+              // tiny delay lets app enable send button / register input
+              setTimeout(() => submitByButtonOrEnter(editor), 150);
+            }
             return true;
           }
           return false;
@@ -268,10 +341,11 @@ async function tryInjectWithTiming(tabId, prompt, { label = "" } = {}) {
           }
         }, INTERVAL);
       },
-      args: [prompt, label]
+      args: [prompt, label, autoSubmit]
     });
   } catch (e) {
     console.warn("[JobSearchExt] executeScript failed:", e);
+    // Last resort: show a message (works for short prompts only)
     try {
       await chrome.tabs.update(tabId, {
         url: `${CUSTOM_GPT_URL}?q=${encodeURIComponent("Could not auto-insert text. Please paste below.")}`
