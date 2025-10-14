@@ -13,7 +13,7 @@ Primary workflow:
 4) Tailored cover letter: If a template is provided, honor its structure and placeholders and populate it with the most relevant, truthful achievements and keywords from the resume and matching skills. If no template is provided, generate a crisp, one-page cover letter in a confident, professional, and polished tone. Use specific metrics and outcomes from the resume where available. Mirror the company’s language sparingly for ATS alignment. Never fabricate experience, dates, employers, or credentials. When drafting the letter, exclude physical address blocks for both the applicant and the company, as these applications will be delivered online. Always end cover letters with the user’s standard signature block:
 
 Keith Fry  
-248-939-7455 (M)  
+<phone number redacted>
 keithfry@gmail.com  
 https://www.linkedin.com/in/keith-fry/
 
