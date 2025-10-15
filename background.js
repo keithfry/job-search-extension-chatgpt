@@ -8,8 +8,8 @@ const AUTO_SUBMIT = true;
 
 const ACTIONS = {
   fitMatch:      { title: "Fit Match",      prefix: "Fit Match:" },
-  jobSummary:    { title: "Job Summary",    prefix: "Job Summary:" },
-  fitAndSummary: { title: "Fit & Summary",  prefix: "Fit & Summary:" }
+  jobSummary:    { title: "Job Summary",    prefix: "Create a Job Summary in 5 sentences for following position: " },
+  fitAndSummary: { title: "Fit & Summary",  prefix: "Do a Fit match & create a job Summary in 5 sentences:" }
 };
 
 // ====== CONTEXT MENUS ======
@@ -67,16 +67,6 @@ async function findExistingGptTabByTitle() {
 }
 
 async function openOrFocusGptTab({ clear = false } = {}) {
-  const existing = await findExistingGptTabByTitle();
-  if (existing) {
-    await chrome.tabs.update(existing.id, { active: true });
-    if (clear) {
-      const freshUrl = `${CUSTOM_GPT_URL}?fresh=${Date.now()}`;
-      await chrome.tabs.update(existing.id, { url: freshUrl });
-      await waitForTitleMatch(existing.id, GPT_TITLE_MATCH, 20000);
-    }
-    return existing.id;
-  }
   const created = await chrome.tabs.create({
     url: `${CUSTOM_GPT_URL}?fresh=${Date.now()}`,
     active: true
