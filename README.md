@@ -8,7 +8,8 @@ A Chrome extension that streamlines my job search workflow by quickly sending se
 - **Keyboard Shortcuts**: Fast access with customizable keyboard shortcuts
 - **Smart Tab Management**: Automatically opens or focuses your GPT tab
 - **Auto-Submit**: Optionally submit prompts automatically for hands-free operation
-- **Multiple Actions**: Three specialized actions for different job search needs
+- **Multiple Actions**: Four specialized actions for different job search needs
+- **Parallel Processing**: Run all actions simultaneously in separate tabs
 - **Retry Logic**: Robust injection with automatic retry on failure
 - **Fresh Context**: Option to clear previous conversation context
 
@@ -20,8 +21,11 @@ Analyzes how well your background fits a job description.
 ### 2. Job Summary (Alt+Shift+K) — *Mac: Option+Shift+K*
 Creates a concise summary of a job posting.
 
-### 3. Fit & Summary (Alt+Shift+L) — *Mac: Option+Shift+L*
-Combines both fit analysis and job summary in one action.
+### 3. Critical Fit Match (Alt+Shift+L) — *Mac: Option+Shift+L*
+Provides a critical, thorough analysis of job fit.
+
+### 4. Run All Actions (Alt+Shift+H) — *Mac: Option+Shift+H*
+Runs all three actions (Job Summary, Fit Match, and Critical Fit Match) simultaneously in separate browser tabs for parallel processing. This allows you to quickly get all three perspectives on a job posting at once.
 
 ## Installation
 
@@ -88,7 +92,8 @@ After creating your GPT:
 2. Press one of the keyboard shortcuts:
    - **Alt+Shift+J**: Fit Match — *Mac: Option+Shift+J*
    - **Alt+Shift+K**: Job Summary — *Mac: Option+Shift+K*
-   - **Alt+Shift+L**: Fit & Summary — *Mac: Option+Shift+L*
+   - **Alt+Shift+L**: Critical Fit Match — *Mac: Option+Shift+L*
+   - **Alt+Shift+H**: Run All Actions — *Mac: Option+Shift+H*
 
 ### Customizing Shortcuts
 1. Go to `chrome://extensions/shortcuts`
@@ -116,30 +121,36 @@ After creating your GPT:
 ### How It Works
 
 1. **Selection Capture**: When triggered, captures selected text from current tab
-2. **Tab Management**: Finds existing GPT tab by title or creates new one
+2. **Tab Management**:
+   - Single actions: Finds existing GPT tab by title or creates new one
+   - Run All: Creates 3 separate tabs for parallel processing
 3. **Context Clearing**: Optionally refreshes the tab for clean context
 4. **Text Injection**: Uses robust DOM querying to find ChatGPT's input field
-   - Tries multiple selector strategies (background.js:130-139)
-   - Handles shadow DOM traversal (background.js:153-159)
-   - Validates element visibility (background.js:142-152)
+   - Tries multiple selector strategies
+   - Handles shadow DOM traversal
+   - Validates element visibility
 5. **Auto-Submit**: Optionally clicks send button or triggers Enter key
 6. **Retry Logic**: If first attempt fails, retries after 1.2 seconds
 7. **Deduplication**: Prevents duplicate submissions using unique request IDs
+8. **Parallel Execution**: Run All launches all actions simultaneously in background tabs
 
 ### Key Functions
 
-- `openOrFocusGptTab()`: Smart tab management (background.js:69-85)
-- `tryInjectWithTiming()`: Main injection logic with retry (background.js:113-301)
-- `pickEditor()`: Finds ChatGPT input field (background.js:167-180)
-- `setValue()`: Inserts text using proper DOM APIs (background.js:202-210)
-- `submit()`: Submits the prompt (background.js:226-240)
+- `runAllActions()`: Launches all three actions in parallel tabs
+- `openOrFocusGptTab()`: Smart tab management for single actions
+- `tryInjectWithTiming()`: Main injection logic with retry
+- `pickEditor()`: Finds ChatGPT input field
+- `setValue()`: Inserts text using proper DOM APIs
+- `submit()`: Submits the prompt
+- `sendSelectionToGpt()`: Keyboard shortcut handler
 
 ### Debounce & Race Prevention
 
-The extension implements request deduplication at the page level (background.js:120-128):
+The extension implements request deduplication at the page level:
 - Each request gets a unique ID
 - Page-level state tracks the last request ID and timestamp
 - Duplicate requests within 10 seconds are automatically skipped
+- Run All creates separate request IDs for each parallel action
 
 ## Troubleshooting
 
@@ -220,7 +231,13 @@ Potential improvements for future versions:
 
 ## Version History
 
-### 1.5.0 (Current)
+### 1.6.0 (Current)
+- **Run All Actions**: Execute all three actions in parallel tabs
+- Keyboard shortcut (Alt+Shift+H) for Run All
+- Context menu option for Run All
+- Parallel tab management for simultaneous processing
+
+### 1.5.0
 - Keyboard shortcut support for all actions
 - Enhanced deduplication logic
 - Shadow DOM traversal support
