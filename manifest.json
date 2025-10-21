@@ -18,9 +18,9 @@
       "suggested_key": { "default": "Alt+Shift+K" },
       "description": "Send selection → Job Summary"
     },
-    "fitAndSummaryShortcut": {
+    "criticalFitMatchShortcut": {
       "suggested_key": { "default": "Alt+Shift+L" },
-      "description": "Send selection → Fit & Summary"
+      "description": "Send selection → Critical Fit Match"
     }
   }
 }

@@ -7,9 +7,9 @@ const CLEAR_CONTEXT = true;
 const AUTO_SUBMIT = true;
 
 const ACTIONS = {
-  fitMatch:      { title: "Fit Match",      prefix: "Fit Match:" },
+  fitMatch:      { title: "Fit Match",      prefix: "Create a Fit Match, do not create a cover letter:" },
   jobSummary:    { title: "Job Summary",    prefix: "Create a Job Summary in 5 sentences for following position: " },
-  fitAndSummary: { title: "Fit & Summary",  prefix: "Do a Fit match & create a job Summary in 5 sentences:" }
+  criticalFitMatch: { title: "Critical Fit Match",      prefix: "think long, be critical, and provide a Fit Match with no cover letter: " }
 };
 
 // ====== CONTEXT MENUS ======
@@ -327,7 +327,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     await sendSelectionToGpt("fitMatch");
   } else if (command === "jobSummaryShortcut") {
     await sendSelectionToGpt("jobSummary");
-  } else if (command === "fitAndSummaryShortcut") {
-    await sendSelectionToGpt("fitAndSummary");
+  } else if (command === "criticalFitMatchShortcut") {
+    await sendSelectionToGpt("criticalFitMatch");
   }
 });
