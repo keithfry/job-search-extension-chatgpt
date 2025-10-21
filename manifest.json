@@ -21,6 +21,10 @@
     "criticalFitMatchShortcut": {
       "suggested_key": { "default": "Alt+Shift+L" },
       "description": "Send selection → Critical Fit Match"
+    },
+    "runAllShortcut": {
+      "suggested_key": { "default": "Alt+Shift+H" },
+      "description": "Send selection → Run All Actions"
     }
   }
 }

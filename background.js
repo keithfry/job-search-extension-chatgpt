@@ -9,7 +9,8 @@ const AUTO_SUBMIT = true;
 const ACTIONS = {
   fitMatch:      { title: "Fit Match",      prefix: "Create a Fit Match, do not create a cover letter:" },
   jobSummary:    { title: "Job Summary",    prefix: "Create a Job Summary in 5 sentences for following position: " },
-  criticalFitMatch: { title: "Critical Fit Match",      prefix: "think long, be critical, and provide a Fit Match with no cover letter: " }
+  criticalFitMatch: { title: "Critical Fit Match",      prefix: "think long, be critical, and provide a Fit Match with no cover letter: " },
+  runAll:        { title: "Run All Actions", isMulti: true }
 };
 
 // ====== CONTEXT MENUS ======
@@ -35,6 +36,13 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   if (!info.selectionText) return;
 
   const action = ACTIONS[info.menuItemId] || ACTIONS.jobSummary;
+
+  // Handle "Run All" action
+  if (action.isMulti) {
+    await runAllActions(info.selectionText.trim());
+    return;
+  }
+
   const prompt = `${action.prefix} ${info.selectionText.trim()}`;
 
   try {
@@ -46,7 +54,7 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
     // Attempt #1
     const ok1 = await tryInjectWithTiming(tabId, prompt, { label: "attempt#1", autoSubmit: AUTO_SUBMIT, reqId });
 
-    // Only do a backup if the first didn’t insert/submit
+    // Only do a backup if the first didn't insert/submit
     if (!ok1) {
       setTimeout(() => tryInjectWithTiming(tabId, prompt, { label: "attempt#2", autoSubmit: AUTO_SUBMIT, reqId }), 1200);
     }
@@ -57,6 +65,49 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
     setTimeout(() => tryInjectWithTiming(t.id, prompt, { label: "fallback", autoSubmit: AUTO_SUBMIT, reqId }), 1200);
   }
 });
+
+// ====== RUN ALL ACTIONS HANDLER ======
+async function runAllActions(selectionText) {
+  const actionSequence = ['jobSummary', 'fitMatch', 'criticalFitMatch'];
+
+  // Launch all three actions in parallel, each in its own tab
+  const promises = actionSequence.map(async (actionId) => {
+    const action = ACTIONS[actionId];
+    const prompt = `${action.prefix} ${selectionText}`;
+
+    try {
+      // Create a new tab for this action
+      const tab = await chrome.tabs.create({ url: CUSTOM_GPT_URL, active: false });
+      const tabId = await waitForTitleMatch(tab.id, GPT_TITLE_MATCH, 20000);
+
+      console.log(`[JobSearchExt] Launching ${action.title} in tab ${tabId}`);
+
+      const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      // Attempt #1
+      const ok1 = await tryInjectWithTiming(tabId, prompt, {
+        label: `runAll-${actionId}-attempt#1`,
+        autoSubmit: AUTO_SUBMIT,
+        reqId
+      });
+
+      // Only do a backup if the first didn't insert/submit
+      if (!ok1) {
+        setTimeout(() => tryInjectWithTiming(tabId, prompt, {
+          label: `runAll-${actionId}-attempt#2`,
+          autoSubmit: AUTO_SUBMIT,
+          reqId
+        }), 1200);
+      }
+    } catch (e) {
+      console.warn(`[JobSearchExt] Failed to run ${action.title}:`, e);
+    }
+  });
+
+  // Wait for all tabs to be created and prompts to be sent
+  await Promise.all(promises);
+  console.log("[JobSearchExt] All actions launched in parallel");
+}
 
 // ====== TAB/TITLE HELPERS ======
 async function findExistingGptTabByTitle() {
@@ -306,11 +357,17 @@ async function sendSelectionToGpt(actionId) {
     return;
   }
 
-  // 2) build the same prompt you use for context menu
+  // 2) check if this is the "runAll" action
   const action = ACTIONS[actionId] || ACTIONS.jobSummary;
+  if (action.isMulti) {
+    await runAllActions(selection);
+    return;
+  }
+
+  // 3) build the same prompt you use for context menu
   const prompt = `${action.prefix} ${selection}`;
 
-  // 3) reuse your normal open + inject path
+  // 4) reuse your normal open + inject path
   const tabId = await openOrFocusGptTab({ clear: CLEAR_CONTEXT });
   const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const ok1 = await tryInjectWithTiming(tabId, prompt, { label: `kb#${actionId}-attempt#1`, autoSubmit: AUTO_SUBMIT, reqId });
@@ -329,5 +386,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     await sendSelectionToGpt("jobSummary");
   } else if (command === "criticalFitMatchShortcut") {
     await sendSelectionToGpt("criticalFitMatch");
+  } else if (command === "runAllShortcut") {
+    await sendSelectionToGpt("runAll");
   }
 });
