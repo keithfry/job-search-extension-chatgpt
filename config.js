@@ -77,6 +77,12 @@ function validateConfig(config) {
       if (!action.prompt?.trim()) {
         errors.push(`Action ${index + 1}: Prompt is required`);
       }
+      if (action.shortcut && action.shortcut.trim()) {
+        const validShortcutPattern = /^(Ctrl|Alt|Shift|Meta)(\+(Ctrl|Alt|Shift|Meta))*\+.+$/;
+        if (!validShortcutPattern.test(action.shortcut)) {
+          errors.push(`Action ${index + 1}: Invalid shortcut format (must include modifier keys)`);
+        }
+      }
       if (typeof action.enabled !== 'boolean') {
         errors.push(`Action ${index + 1}: enabled must be true or false`);
       }
@@ -112,20 +118,20 @@ async function getConfig() {
 
     if (!config) {
       console.log('[Config] No config found, using defaults');
-      return DEFAULT_CONFIG;
+      return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     }
 
     // Validate loaded config
     const errors = validateConfig(config);
     if (errors.length > 0) {
       console.error('[Config] Validation failed, using defaults:', errors);
-      return DEFAULT_CONFIG;
+      return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     }
 
     return config;
   } catch (e) {
     console.error('[Config] Error loading config, using defaults:', e);
-    return DEFAULT_CONFIG;
+    return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
 }
 
