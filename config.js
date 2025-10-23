@@ -11,17 +11,17 @@ const DEFAULT_CONFIG = {
   },
   actions: [
     {
-      id: "fitMatch",
-      title: "Fit Match",
-      prompt: "Create a Fit Match, do not create a cover letter:",
+      id: "jobSummary",
+      title: "Job Summary",
+      prompt: "Create a Job Summary in 5 sentences for following position:",
       shortcut: "Alt+Shift+J",
       enabled: true,
       order: 1
     },
     {
-      id: "jobSummary",
-      title: "Job Summary",
-      prompt: "Create a Job Summary in 5 sentences for following position:",
+      id: "fitMatch",
+      title: "Fit Match",
+      prompt: "Create a Fit Match, do not create a cover letter:",
       shortcut: "Alt+Shift+K",
       enabled: true,
       order: 2
