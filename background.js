@@ -28,16 +28,40 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 // ====== CONTEXT MENU MANAGEMENT ======
+let isRebuildingMenus = false;
+
 async function rebuildContextMenus() {
+  // Prevent concurrent rebuilds
+  if (isRebuildingMenus) {
+    console.log('[Background] Menu rebuild already in progress, skipping');
+    return;
+  }
+
+  isRebuildingMenus = true;
+
   try {
     // Clear all existing menus
     await chrome.contextMenus.removeAll();
 
+    // Small delay to ensure removal completes
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     // Load current config
     const config = await loadConfig();
 
+    // Helper to create menu item with error handling
+    const createMenuItem = (props) => {
+      try {
+        chrome.contextMenus.create(props);
+      } catch (e) {
+        if (!e.message?.includes('duplicate')) {
+          console.error('[Background] Error creating menu item:', props.id, e);
+        }
+      }
+    };
+
     // Create root menu
-    chrome.contextMenus.create({
+    createMenuItem({
       id: 'jobSearchRoot',
       title: config.globalSettings.contextMenuTitle,
       contexts: ['selection']
@@ -49,7 +73,7 @@ async function rebuildContextMenus() {
       .sort((a, b) => a.order - b.order);
 
     enabledActions.forEach(action => {
-      chrome.contextMenus.create({
+      createMenuItem({
         id: action.id,
         parentId: 'jobSearchRoot',
         title: action.title,
@@ -59,7 +83,7 @@ async function rebuildContextMenus() {
 
     // Create "Run All" menu item if enabled and there are multiple actions
     if (config.globalSettings.runAllEnabled && enabledActions.length > 1) {
-      chrome.contextMenus.create({
+      createMenuItem({
         id: 'runAll',
         parentId: 'jobSearchRoot',
         title: 'Run All Actions',
@@ -70,10 +94,8 @@ async function rebuildContextMenus() {
     console.log('[Background] Context menus rebuilt:', enabledActions.length, 'actions');
   } catch (e) {
     console.error('[Background] Error rebuilding context menus:', e);
-    // If menus already exist, this is expected during reload - just log it
-    if (e.message && e.message.includes('duplicate')) {
-      console.log('[Background] Menus already exist, skipping rebuild');
-    }
+  } finally {
+    isRebuildingMenus = false;
   }
 }
 
