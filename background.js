@@ -1,128 +1,224 @@
-// ====== CONFIG ======
-const CUSTOM_GPT_URL =
-  "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach";
-const GPT_TITLE_MATCH = "ChatGPT - Keith Fry's Job Match and Cover Letter Coach";
+import { getConfig, migrateConfig } from './config.js';
 
-const CLEAR_CONTEXT = true;
-const AUTO_SUBMIT = true;
+// ====== DYNAMIC CONFIG ======
+// Config is now loaded from chrome.storage.sync
+// No hardcoded values - everything is user-configurable
 
-const ACTIONS = {
-  fitMatch:      { title: "Fit Match",      prefix: "Create a Fit Match, do not create a cover letter:" },
-  jobSummary:    { title: "Job Summary",    prefix: "Create a Job Summary in 5 sentences for following position: " },
-  criticalFitMatch: { title: "Critical Fit Match",      prefix: "think long, be critical, and provide a Fit Match with no cover letter: " },
-  runAll:        { title: "Run All Actions", isMulti: true }
-};
+// ====== CONFIG CACHE ======
+let cachedConfig = null;
 
-// ====== CONTEXT MENUS ======
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "jobSearchRoot",
-    title: "Send to Job Search GPT",
-    contexts: ["selection"]
-  });
+async function loadConfig() {
+  if (!cachedConfig) {
+    cachedConfig = await getConfig();
+  }
+  return cachedConfig;
+}
 
-  Object.entries(ACTIONS).forEach(([id, def]) => {
-    chrome.contextMenus.create({
-      id,
-      parentId: "jobSearchRoot",
-      title: def.title,
-      contexts: ["selection"]
-    });
-  });
+function invalidateCache() {
+  cachedConfig = null;
+}
+
+// ====== INSTALLATION & MIGRATION ======
+chrome.runtime.onInstalled.addListener(async () => {
+  // Migrate config if needed (v1.6.0 → v2.0.0)
+  await migrateConfig();
+
+  // Load config and build menus
+  await rebuildContextMenus();
 });
 
-// ====== MAIN CLICK HANDLER ======
+// ====== CONTEXT MENU MANAGEMENT ======
+async function rebuildContextMenus() {
+  // Clear all existing menus
+  await chrome.contextMenus.removeAll();
+
+  // Load current config
+  const config = await loadConfig();
+
+  // Create root menu
+  chrome.contextMenus.create({
+    id: 'jobSearchRoot',
+    title: 'Send to Job Search GPT',
+    contexts: ['selection']
+  });
+
+  // Create menu item for each enabled action
+  const enabledActions = config.actions
+    .filter(action => action.enabled)
+    .sort((a, b) => a.order - b.order);
+
+  enabledActions.forEach(action => {
+    chrome.contextMenus.create({
+      id: action.id,
+      parentId: 'jobSearchRoot',
+      title: action.title,
+      contexts: ['selection']
+    });
+  });
+
+  // Create "Run All" menu item if there are multiple actions
+  if (enabledActions.length > 1) {
+    chrome.contextMenus.create({
+      id: 'runAll',
+      parentId: 'jobSearchRoot',
+      title: 'Run All Actions',
+      contexts: ['selection']
+    });
+  }
+
+  console.log('[Background] Context menus rebuilt:', enabledActions.length, 'actions');
+}
+
+// ====== SHORTCUT MAP BUILDER ======
+function buildShortcutMap(config) {
+  const map = new Map();
+
+  config.actions
+    .filter(action => action.enabled && action.shortcut)
+    .forEach(action => {
+      map.set(action.shortcut, action.id);
+    });
+
+  return map;
+}
+
+// ====== STORAGE CHANGE LISTENER ======
+chrome.storage.onChanged.addListener(async (changes, areaName) => {
+  if (areaName === 'sync' && changes.config) {
+    console.log('[Background] Config changed, rebuilding...');
+    invalidateCache();
+    await rebuildContextMenus();
+
+    // Notify all tabs to reload shortcuts
+    const tabs = await chrome.tabs.query({});
+    const config = await loadConfig();
+    const shortcuts = buildShortcutMap(config);
+
+    tabs.forEach(tab => {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'SHORTCUTS_UPDATED',
+        shortcuts: Array.from(shortcuts.entries())
+      }).catch(() => {
+        // Ignore errors for tabs where content script isn't loaded
+      });
+    });
+  }
+});
+
+// ====== CONTEXT MENU CLICK HANDLER ======
 chrome.contextMenus.onClicked.addListener(async (info) => {
   if (!info.selectionText) return;
 
-  const action = ACTIONS[info.menuItemId] || ACTIONS.jobSummary;
+  const config = await loadConfig();
+  const actionId = info.menuItemId;
 
   // Handle "Run All" action
-  if (action.isMulti) {
-    await runAllActions(info.selectionText.trim());
+  if (actionId === 'runAll') {
+    await runAllActions(info.selectionText.trim(), config);
     return;
   }
 
-  const prompt = `${action.prefix} ${info.selectionText.trim()}`;
+  // Find the action
+  const action = config.actions.find(a => a.id === actionId);
+  if (!action) {
+    console.warn('[Background] Action not found:', actionId);
+    return;
+  }
+
+  // Execute single action
+  await executeAction(action, info.selectionText.trim(), config);
+});
+
+// ====== SINGLE ACTION EXECUTION ======
+async function executeAction(action, selectionText, config) {
+  const prompt = `${action.prompt} ${selectionText}`;
 
   try {
-    const tabId = await openOrFocusGptTab({ clear: CLEAR_CONTEXT });
+    const tabId = await openOrFocusGptTab(config, { clear: config.globalSettings.clearContext });
 
-    // unique request id for debounce across attempts
     const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     // Attempt #1
-    const ok1 = await tryInjectWithTiming(tabId, prompt, { label: "attempt#1", autoSubmit: AUTO_SUBMIT, reqId });
+    const ok1 = await tryInjectWithTiming(tabId, prompt, {
+      label: `${action.id}-attempt#1`,
+      autoSubmit: config.globalSettings.autoSubmit,
+      reqId
+    });
 
-    // Only do a backup if the first didn't insert/submit
+    // Retry if needed
     if (!ok1) {
-      setTimeout(() => tryInjectWithTiming(tabId, prompt, { label: "attempt#2", autoSubmit: AUTO_SUBMIT, reqId }), 1200);
+      setTimeout(() => tryInjectWithTiming(tabId, prompt, {
+        label: `${action.id}-attempt#2`,
+        autoSubmit: config.globalSettings.autoSubmit,
+        reqId
+      }), 1200);
     }
   } catch (e) {
-    console.warn("[JobSearchExt] Failed to open/focus tab:", e);
-    const t = await chrome.tabs.create({ url: CUSTOM_GPT_URL, active: true });
+    console.warn('[Background] Failed to execute action:', action.id, e);
+    const t = await chrome.tabs.create({ url: config.globalSettings.customGptUrl, active: true });
     const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    setTimeout(() => tryInjectWithTiming(t.id, prompt, { label: "fallback", autoSubmit: AUTO_SUBMIT, reqId }), 1200);
+    setTimeout(() => tryInjectWithTiming(t.id, prompt, {
+      label: `${action.id}-fallback`,
+      autoSubmit: config.globalSettings.autoSubmit,
+      reqId
+    }), 1200);
   }
-});
+}
 
 // ====== RUN ALL ACTIONS HANDLER ======
-async function runAllActions(selectionText) {
-  const actionSequence = ['jobSummary', 'fitMatch', 'criticalFitMatch'];
+async function runAllActions(selectionText, config) {
+  // Get all enabled actions
+  const enabledActions = config.actions
+    .filter(action => action.enabled)
+    .sort((a, b) => a.order - b.order);
 
-  // Launch all three actions in parallel, each in its own tab
-  const promises = actionSequence.map(async (actionId) => {
-    const action = ACTIONS[actionId];
-    const prompt = `${action.prefix} ${selectionText}`;
+  // Launch all actions in parallel, each in its own tab
+  const promises = enabledActions.map(async (action) => {
+    const prompt = `${action.prompt} ${selectionText}`;
 
     try {
       // Create a new tab for this action
-      const tab = await chrome.tabs.create({ url: CUSTOM_GPT_URL, active: false });
-      const tabId = await waitForTitleMatch(tab.id, GPT_TITLE_MATCH, 20000);
+      const tab = await chrome.tabs.create({
+        url: config.globalSettings.customGptUrl,
+        active: false
+      });
+      const tabId = await waitForTitleMatch(tab.id, config.globalSettings.gptTitleMatch, 20000);
 
-      console.log(`[JobSearchExt] Launching ${action.title} in tab ${tabId}`);
+      console.log(`[Background] Launching ${action.title} in tab ${tabId}`);
 
       const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       // Attempt #1
       const ok1 = await tryInjectWithTiming(tabId, prompt, {
-        label: `runAll-${actionId}-attempt#1`,
-        autoSubmit: AUTO_SUBMIT,
+        label: `runAll-${action.id}-attempt#1`,
+        autoSubmit: config.globalSettings.autoSubmit,
         reqId
       });
 
-      // Only do a backup if the first didn't insert/submit
+      // Retry if needed
       if (!ok1) {
         setTimeout(() => tryInjectWithTiming(tabId, prompt, {
-          label: `runAll-${actionId}-attempt#2`,
-          autoSubmit: AUTO_SUBMIT,
+          label: `runAll-${action.id}-attempt#2`,
+          autoSubmit: config.globalSettings.autoSubmit,
           reqId
         }), 1200);
       }
     } catch (e) {
-      console.warn(`[JobSearchExt] Failed to run ${action.title}:`, e);
+      console.warn(`[Background] Failed to run ${action.title}:`, e);
     }
   });
 
-  // Wait for all tabs to be created and prompts to be sent
   await Promise.all(promises);
-  console.log("[JobSearchExt] All actions launched in parallel");
+  console.log('[Background] All actions launched in parallel');
 }
 
 // ====== TAB/TITLE HELPERS ======
-async function findExistingGptTabByTitle() {
-  const candidates = await chrome.tabs.query({
-    url: ["https://chatgpt.com/*", "https://chat.openai.com/*"]
-  });
-  return candidates.find(t => (t.title || "").toLowerCase().includes(GPT_TITLE_MATCH.toLowerCase()));
-}
-
-async function openOrFocusGptTab({ clear = false } = {}) {
+async function openOrFocusGptTab(config, { clear = false } = {}) {
   const created = await chrome.tabs.create({
-    url: `${CUSTOM_GPT_URL}?fresh=${Date.now()}`,
+    url: `${config.globalSettings.customGptUrl}?fresh=${Date.now()}`,
     active: true
   });
-  return await waitForTitleMatch(created.id, GPT_TITLE_MATCH, 20000);
+  return await waitForTitleMatch(created.id, config.globalSettings.gptTitleMatch, 20000);
 }
 
 function waitForTitleMatch(tabId, titleSubstring, timeoutMs = 20000) {
@@ -334,59 +430,63 @@ async function tryInjectWithTiming(tabId, prompt, { label = "", autoSubmit = fal
     console.warn("[JobSearchExt] executeScript failed:", e);
     try {
       await chrome.tabs.update(tabId, {
-        url: `${CUSTOM_GPT_URL}?q=${encodeURIComponent("Could not auto-insert text. Please paste below.")}`
+        url: `https://chatgpt.com/?q=${encodeURIComponent("Could not auto-insert text. Please paste below.")}`
       });
     } catch {}
     return false;
   }
 }
 
-// --- helper to reuse your existing flow for shortcuts ---
-async function sendSelectionToGpt(actionId) {
-  // 1) get current selection text from the active tab
-  const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!active?.id) return;
-
-  const [{ result: selection = "" } = {}] = await chrome.scripting.executeScript({
-    target: { tabId: active.id },
-    func: () => (getSelection?.() ? String(getSelection()).trim() : "")
-  });
-
-  if (!selection) {
-    // No text selected; silently ignore (or you could open the GPT with a hint)
-    return;
+// ====== MESSAGE LISTENER FOR SHORTCUTS ======
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'GET_SHORTCUTS') {
+    // Content script requesting current shortcuts
+    loadConfig().then(config => {
+      const shortcuts = buildShortcutMap(config);
+      sendResponse({ shortcuts: Array.from(shortcuts.entries()) });
+    });
+    return true; // Keep channel open for async response
   }
 
-  // 2) check if this is the "runAll" action
-  const action = ACTIONS[actionId] || ACTIONS.jobSummary;
-  if (action.isMulti) {
-    await runAllActions(selection);
-    return;
-  }
-
-  // 3) build the same prompt you use for context menu
-  const prompt = `${action.prefix} ${selection}`;
-
-  // 4) reuse your normal open + inject path
-  const tabId = await openOrFocusGptTab({ clear: CLEAR_CONTEXT });
-  const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const ok1 = await tryInjectWithTiming(tabId, prompt, { label: `kb#${actionId}-attempt#1`, autoSubmit: AUTO_SUBMIT, reqId });
-  if (!ok1) {
-    setTimeout(() =>
-      tryInjectWithTiming(tabId, prompt, { label: `kb#${actionId}-attempt#2`, autoSubmit: AUTO_SUBMIT, reqId }),
-    1200);
-  }
-}
-
-// --- keyboard shortcuts for each sub-action ---
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === "fitMatchShortcut") {
-    await sendSelectionToGpt("fitMatch");
-  } else if (command === "jobSummaryShortcut") {
-    await sendSelectionToGpt("jobSummary");
-  } else if (command === "criticalFitMatchShortcut") {
-    await sendSelectionToGpt("criticalFitMatch");
-  } else if (command === "runAllShortcut") {
-    await sendSelectionToGpt("runAll");
+  if (message.type === 'EXECUTE_SHORTCUT') {
+    // Content script triggered a shortcut
+    handleShortcutExecution(message.actionId, sender.tab.id);
+    return false;
   }
 });
+
+// ====== SHORTCUT EXECUTION HANDLER ======
+async function handleShortcutExecution(actionId, senderTabId) {
+  try {
+    const config = await loadConfig();
+
+    // Get selected text from the sender tab
+    const [{ result: selection = '' } = {}] = await chrome.scripting.executeScript({
+      target: { tabId: senderTabId },
+      func: () => (getSelection?.() ? String(getSelection()).trim() : '')
+    });
+
+    if (!selection) {
+      console.log('[Background] No text selected for shortcut');
+      return;
+    }
+
+    // Handle "Run All" shortcut
+    if (actionId === 'runAll') {
+      await runAllActions(selection, config);
+      return;
+    }
+
+    // Find the action
+    const action = config.actions.find(a => a.id === actionId);
+    if (!action) {
+      console.warn('[Background] Action not found for shortcut:', actionId);
+      return;
+    }
+
+    // Execute the action
+    await executeAction(action, selection, config);
+  } catch (e) {
+    console.error('[Background] Failed to handle shortcut execution:', e);
+  }
+}
