@@ -1,5 +1,5 @@
 // ====== IMPORTS ======
-import { DEFAULT_CONFIG } from './default-config.js';
+import DEFAULT_CONFIG from './default-config.json' assert { type: 'json' };
 
 // ====== VALIDATION ======
 function validateConfig(config) {
