@@ -46,21 +46,37 @@ header .subtitle {
 /* ====== BANNERS ====== */
 .error-banner,
 .success-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   padding: 12px 16px;
-  border-radius: 4px;
-  margin-bottom: 20px;
   font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .error-banner {
   background: #fce4e4;
-  border: 1px solid #fcc2c3;
+  border-bottom: 2px solid #fcc2c3;
   color: #cc0033;
 }
 
 .success-banner {
   background: #e6f4ea;
-  border: 1px solid #81c995;
+  border-bottom: 2px solid #81c995;
   color: #137333;
 }
 
