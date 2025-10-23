@@ -206,11 +206,12 @@ function captureShortcut(shortcutInput) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Get the key first
-    const key = e.key;
+    // Use e.code for physical key (not affected by modifiers on Mac)
+    const code = e.code;
 
     // Ignore if it's just a modifier key by itself
-    if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) {
+    if (['ControlLeft', 'ControlRight', 'AltLeft', 'AltRight',
+         'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight'].includes(code)) {
       return; // Keep listening for the actual key
     }
 
@@ -230,8 +231,19 @@ function captureShortcut(shortcutInput) {
       return;
     }
 
-    // Add the actual key
-    const displayKey = key.length === 1 ? key.toUpperCase() : key;
+    // Convert code to display key
+    // e.code examples: "KeyA", "Digit1", "ArrowUp", "Space", "Enter"
+    let displayKey;
+    if (code.startsWith('Key')) {
+      displayKey = code.replace('Key', ''); // "KeyY" -> "Y"
+    } else if (code.startsWith('Digit')) {
+      displayKey = code.replace('Digit', ''); // "Digit1" -> "1"
+    } else if (code.startsWith('Arrow')) {
+      displayKey = code.replace('Arrow', ''); // "ArrowUp" -> "Up"
+    } else {
+      displayKey = code; // Use as-is for special keys like "Space", "Enter"
+    }
+
     parts.push(displayKey);
 
     const shortcutString = parts.join('+');
