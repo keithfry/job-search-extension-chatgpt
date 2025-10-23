@@ -48,9 +48,9 @@ Runs all enabled actions simultaneously in separate browser tabs for parallel pr
 
 **Configuration Options:**
 - **Custom GPT URL**: Your custom GPT URL (e.g., https://chatgpt.com/g/g-...)
-- **GPT Title Match**: Browser tab title to match (for finding existing tabs)
-- **Clear Context**: Set to enable/disable starting fresh conversation each time
+- **Context Menu Title**: Customize the right-click menu title
 - **Auto Submit**: Set to enable/disable automatically submitting prompts
+- **Enable Run All Actions**: Show/hide the "Run All" feature with configurable shortcut
 - **Actions**: Add, edit, remove, and reorder actions with custom prompts and shortcuts
 
 **For v1.6.0 and earlier users:** Your existing configuration will be automatically migrated to the new options page on first load.
@@ -78,8 +78,10 @@ To get the most out of this extension, you should create a custom ChatGPT config
 After creating your GPT:
 1. Click "Publish" to finalize your GPT
 2. Copy the URL from your browser (format: `https://chatgpt.com/g/g-XXXXXXXXX-your-gpt-name`)
-3. Paste this URL into the `CUSTOM_GPT_URL` constant in `background.js`
-4. Update `GPT_TITLE_MATCH` to match your GPT's tab title (usually "ChatGPT - Your GPT Name")
+3. Open the extension's options page (chrome://extensions → Details → Extension options)
+4. Paste the URL into the "Custom GPT URL" field
+5. Customize the "Context Menu Title" if desired
+6. Click "Save"
 
 
 ## Usage
@@ -155,9 +157,9 @@ Use this to:
 
 1. **Selection Capture**: When triggered, captures selected text from current tab
 2. **Tab Management**:
-   - Single actions: Finds existing GPT tab by title or creates new one
-   - Run All: Creates 3 separate tabs for parallel processing
-3. **Context Clearing**: Optionally refreshes the tab for clean context
+   - Single actions: Creates new GPT tab for each action
+   - Run All: Creates separate tabs for all enabled actions in parallel
+3. **Context Clearing**: Always starts with fresh context for clean analysis
 4. **Text Injection**: Uses robust DOM querying to find ChatGPT's input field
    - Tries multiple selector strategies
    - Handles shadow DOM traversal
@@ -169,13 +171,14 @@ Use this to:
 
 ### Key Functions
 
-- `runAllActions()`: Launches all three actions in parallel tabs
-- `openOrFocusGptTab()`: Smart tab management for single actions
+- `runAllActions()`: Launches all enabled actions in parallel tabs (order preserved)
+- `executeAction()`: Executes a single action with selected text
+- `handleShortcutExecution()`: Processes keyboard shortcut triggers
+- `rebuildContextMenus()`: Dynamically creates context menus from config
 - `tryInjectWithTiming()`: Main injection logic with retry
 - `pickEditor()`: Finds ChatGPT input field
 - `setValue()`: Inserts text using proper DOM APIs
 - `submit()`: Submits the prompt
-- `sendSelectionToGpt()`: Keyboard shortcut handler
 
 ### Debounce & Race Prevention
 
@@ -192,13 +195,15 @@ The extension implements request deduplication at the page level:
 - Ensure ChatGPT page is fully loaded before selecting text
 - Try disabling auto-submit and manually clicking send
 
-### Can't find existing GPT tab
-- Verify `GPT_TITLE_MATCH` exactly matches your ChatGPT tab title
+### Tabs not opening correctly
+- Verify the Custom GPT URL is correct in extension options
 - Check browser's tab title by hovering over the tab
+- Ensure ChatGPT is accessible and you're logged in
 
 ### Keyboard shortcuts don't work
 - Ensure no other extension is using the same shortcuts
-- Verify shortcuts in `chrome://extensions/shortcuts`
+- Configure shortcuts in the extension options page
+- After reloading the extension, refresh any open pages to reload the content script
 - Some system shortcuts may override extension shortcuts
 
 ### "Could not auto-insert text" alert
@@ -211,10 +216,14 @@ The extension implements request deduplication at the page level:
 ### Project Structure
 ```
 job-search-extension-chatgpt/
-├── manifest.json          # Extension configuration
-├── background.js          # Main extension logic
-├── background copy.js     # Backup file
-└── README.md             # This file
+├── manifest.json          # Extension configuration (Manifest V3)
+├── background.js          # Service worker - main extension logic
+├── config.js              # Configuration module with defaults and validation
+├── options.html           # Options page UI
+├── options.css            # Options page styling
+├── options.js             # Options page logic
+├── shortcuts.js           # Content script for keyboard shortcuts
+└── README.md              # This file
 ```
 
 ### Building
@@ -234,14 +243,15 @@ Enable verbose logging in Chrome DevTools:
 
 ## Configuration Best Practices
 
-### For Individual Use
-- Set `CLEAR_CONTEXT = true` for independent job analyses
-- Set `AUTO_SUBMIT = true` for fastest workflow
-- Customize keyboard shortcuts to match your workflow
+### For Fast Workflow
+- Enable `Auto Submit` for hands-free operation
+- Customize keyboard shortcuts to match your muscle memory
+- Use "Run All Actions" when you need comprehensive analysis
 
-### For Multiple Jobs in Session
-- Set `CLEAR_CONTEXT = false` to maintain conversation history
-- Set `AUTO_SUBMIT = false` to review before sending
+### Managing Actions
+- Disable actions you don't use frequently to keep menus clean
+- Reorder actions to put most-used ones at the top
+- Export your configuration regularly as backup
 
 ## Limitations
 
@@ -268,9 +278,13 @@ Potential improvements for future versions:
 ### 2.0.0 (Current) - **Major Update: Fully Configurable**
 - **Options Page**: Full configuration UI for all settings
 - **Custom Actions**: Add, edit, remove, and reorder actions
-- **Custom Shortcuts**: Assign any keyboard shortcut to any action
+- **Custom Shortcuts**: Assign any keyboard shortcut to any action with Mac compatibility
+- **Configurable Context Menu Title**: Customize the right-click menu text
+- **Enable/Disable Run All**: Optional "Run All Actions" feature with custom shortcut
 - **Import/Export**: Backup and share configurations via JSON
 - **Dynamic Menus**: Context menus rebuild automatically from config
+- **Parallel Tab Creation**: Run All creates all tabs quickly while preserving order
+- **Keyboard Shortcut Content Script**: Page-level shortcut handling for all URLs
 - **Migration**: Automatic migration from v1.6.0 hardcoded config
 - **Breaking Change**: Config now stored in chrome.storage.sync (not code)
 
@@ -328,4 +342,4 @@ Developed for streamlining job search workflows with custom ChatGPT assistants.
 
 ---
 
-**Note**: This extension requires a ChatGPT Plus subscription and a custom GPT configured for job search assistance. Update `CUSTOM_GPT_URL` and `GPT_TITLE_MATCH` in background.js before use.
+**Note**: This extension requires a ChatGPT Plus subscription and a custom GPT configured for job search assistance. Configure your Custom GPT URL via the extension's options page.
