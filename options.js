@@ -5,6 +5,8 @@ const customGptUrlInput = document.getElementById('customGptUrl');
 const gptTitleMatchInput = document.getElementById('gptTitleMatch');
 const clearContextCheckbox = document.getElementById('clearContext');
 const autoSubmitCheckbox = document.getElementById('autoSubmit');
+const runAllShortcutInput = document.getElementById('runAllShortcut');
+const runAllShortcutBtn = document.getElementById('runAllShortcutBtn');
 const actionsListContainer = document.getElementById('actions-list');
 const addActionButton = document.getElementById('add-action');
 const saveButton = document.getElementById('save');
@@ -30,6 +32,7 @@ async function loadAndRender() {
     gptTitleMatchInput.value = currentConfig.globalSettings.gptTitleMatch;
     clearContextCheckbox.checked = currentConfig.globalSettings.clearContext;
     autoSubmitCheckbox.checked = currentConfig.globalSettings.autoSubmit;
+    runAllShortcutInput.value = currentConfig.globalSettings.runAllShortcut || '';
 
     // Render actions
     renderActions();
@@ -316,7 +319,8 @@ async function handleSave() {
         customGptUrl: customGptUrlInput.value.trim(),
         gptTitleMatch: gptTitleMatchInput.value.trim(),
         clearContext: clearContextCheckbox.checked,
-        autoSubmit: autoSubmitCheckbox.checked
+        autoSubmit: autoSubmitCheckbox.checked,
+        runAllShortcut: runAllShortcutInput.value.trim()
       },
       actions: []
     };
@@ -470,4 +474,11 @@ importButton.addEventListener('click', handleImportClick);
 importFileInput.addEventListener('change', handleImportFile);
 
 // ====== INITIALIZATION ======
-document.addEventListener('DOMContentLoaded', loadAndRender);
+document.addEventListener('DOMContentLoaded', () => {
+  loadAndRender();
+
+  // Attach Run All shortcut capture button
+  runAllShortcutBtn.addEventListener('click', () => {
+    captureShortcut(runAllShortcutInput);
+  });
+});

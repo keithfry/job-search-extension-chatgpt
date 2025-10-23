@@ -4,7 +4,8 @@ const DEFAULT_CONFIG = {
     customGptUrl: "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
     gptTitleMatch: "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
     clearContext: true,
-    autoSubmit: true
+    autoSubmit: true,
+    runAllShortcut: "Alt+Shift+H"
   },
   actions: [
     {

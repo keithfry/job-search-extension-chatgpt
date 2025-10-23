@@ -81,11 +81,17 @@ async function rebuildContextMenus() {
 function buildShortcutMap(config) {
   const map = new Map();
 
+  // Add individual action shortcuts
   config.actions
     .filter(action => action.enabled && action.shortcut)
     .forEach(action => {
       map.set(action.shortcut, action.id);
     });
+
+  // Add Run All shortcut if configured
+  if (config.globalSettings.runAllShortcut) {
+    map.set(config.globalSettings.runAllShortcut, 'runAll');
+  }
 
   return map;
 }
