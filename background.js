@@ -88,8 +88,8 @@ function buildShortcutMap(config) {
       map.set(action.shortcut, action.id);
     });
 
-  // Add Run All shortcut if configured
-  if (config.globalSettings.runAllShortcut) {
+  // Add Run All shortcut if enabled and configured
+  if (config.globalSettings.runAllEnabled && config.globalSettings.runAllShortcut) {
     map.set(config.globalSettings.runAllShortcut, 'runAll');
   }
 

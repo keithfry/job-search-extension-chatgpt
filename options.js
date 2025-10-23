@@ -5,8 +5,10 @@ const customGptUrlInput = document.getElementById('customGptUrl');
 const gptTitleMatchInput = document.getElementById('gptTitleMatch');
 const clearContextCheckbox = document.getElementById('clearContext');
 const autoSubmitCheckbox = document.getElementById('autoSubmit');
+const runAllEnabledCheckbox = document.getElementById('runAllEnabled');
 const runAllShortcutInput = document.getElementById('runAllShortcut');
 const runAllShortcutBtn = document.getElementById('runAllShortcutBtn');
+const runAllShortcutGroup = document.getElementById('runAllShortcutGroup');
 const actionsListContainer = document.getElementById('actions-list');
 const addActionButton = document.getElementById('add-action');
 const saveButton = document.getElementById('save');
@@ -32,7 +34,11 @@ async function loadAndRender() {
     gptTitleMatchInput.value = currentConfig.globalSettings.gptTitleMatch;
     clearContextCheckbox.checked = currentConfig.globalSettings.clearContext;
     autoSubmitCheckbox.checked = currentConfig.globalSettings.autoSubmit;
+    runAllEnabledCheckbox.checked = currentConfig.globalSettings.runAllEnabled !== false; // default true
     runAllShortcutInput.value = currentConfig.globalSettings.runAllShortcut || '';
+
+    // Show/hide Run All shortcut based on checkbox
+    toggleRunAllShortcutVisibility();
 
     // Render actions
     renderActions();
@@ -320,6 +326,7 @@ async function handleSave() {
         gptTitleMatch: gptTitleMatchInput.value.trim(),
         clearContext: clearContextCheckbox.checked,
         autoSubmit: autoSubmitCheckbox.checked,
+        runAllEnabled: runAllEnabledCheckbox.checked,
         runAllShortcut: runAllShortcutInput.value.trim()
       },
       actions: []
@@ -473,6 +480,15 @@ async function handleImportFile(e) {
 importButton.addEventListener('click', handleImportClick);
 importFileInput.addEventListener('change', handleImportFile);
 
+// ====== RUN ALL VISIBILITY TOGGLE ======
+function toggleRunAllShortcutVisibility() {
+  if (runAllEnabledCheckbox.checked) {
+    runAllShortcutGroup.style.display = '';
+  } else {
+    runAllShortcutGroup.style.display = 'none';
+  }
+}
+
 // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', () => {
   loadAndRender();
@@ -481,4 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
   runAllShortcutBtn.addEventListener('click', () => {
     captureShortcut(runAllShortcutInput);
   });
+
+  // Toggle Run All shortcut visibility when checkbox changes
+  runAllEnabledCheckbox.addEventListener('change', toggleRunAllShortcutVisibility);
 });

@@ -57,7 +57,15 @@
         </label>
       </div>
 
-      <div class="form-group shortcut-group">
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="runAllEnabled" />
+          <span>Enable "Run All Actions"</span>
+        </label>
+        <small>Show "Run All" in context menu and enable keyboard shortcut</small>
+      </div>
+
+      <div class="form-group shortcut-group" id="runAllShortcutGroup">
         <label for="runAllShortcut">Run All Actions Shortcut</label>
         <div class="shortcut-capture">
           <input type="text" id="runAllShortcut" placeholder="None" readonly />

@@ -5,6 +5,7 @@ const DEFAULT_CONFIG = {
     gptTitleMatch: "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
     clearContext: true,
     autoSubmit: true,
+    runAllEnabled: true,
     runAllShortcut: "Alt+Shift+H"
   },
   actions: [
