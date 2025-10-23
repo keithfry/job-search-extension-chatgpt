@@ -288,5 +288,169 @@ function hideAllBanners() {
   successBanner.classList.add('hidden');
 }
 
+// ====== SAVE CONFIGURATION ======
+async function handleSave() {
+  try {
+    hideAllBanners();
+
+    // Build config from form
+    const newConfig = {
+      globalSettings: {
+        customGptUrl: customGptUrlInput.value.trim(),
+        gptTitleMatch: gptTitleMatchInput.value.trim(),
+        clearContext: clearContextCheckbox.checked,
+        autoSubmit: autoSubmitCheckbox.checked
+      },
+      actions: []
+    };
+
+    // Collect actions from DOM
+    const actionItems = actionsListContainer.querySelectorAll('.action-item');
+    actionItems.forEach((item, index) => {
+      const id = item.dataset.actionId;
+      const title = item.querySelector('.action-title').value.trim();
+      const prompt = item.querySelector('.action-prompt').value.trim();
+      const shortcut = item.querySelector('.action-shortcut').value.trim();
+      const enabled = item.querySelector('.action-enabled').checked;
+
+      newConfig.actions.push({
+        id: id,
+        title: title,
+        prompt: prompt,
+        shortcut: shortcut,
+        enabled: enabled,
+        order: index + 1
+      });
+    });
+
+    // Validate
+    const errors = validateConfig(newConfig);
+    if (errors.length > 0) {
+      showError('Validation failed: ' + errors.join('; '));
+      return;
+    }
+
+    // Save
+    await saveConfig(newConfig);
+    currentConfig = newConfig;
+
+    showSuccess('Configuration saved successfully!');
+  } catch (e) {
+    showError('Failed to save: ' + e.message);
+  }
+}
+
+saveButton.addEventListener('click', handleSave);
+
+// ====== ADD ACTION ======
+function handleAddAction() {
+  // Generate unique ID
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 7);
+  const newId = `action_${timestamp}_${randomStr}`;
+
+  // Create new action data
+  const newAction = {
+    id: newId,
+    title: 'New Action',
+    prompt: '',
+    shortcut: '',
+    enabled: true,
+    order: actionsListContainer.children.length + 1
+  };
+
+  // Create and append element
+  const actionElement = createActionElement(newAction, actionsListContainer.children.length);
+  actionsListContainer.appendChild(actionElement);
+
+  // Focus on title input
+  const titleInput = actionElement.querySelector('.action-title');
+  titleInput.focus();
+  titleInput.select();
+}
+
+addActionButton.addEventListener('click', handleAddAction);
+
+// ====== CANCEL ======
+function handleCancel() {
+  if (confirm('Discard unsaved changes?')) {
+    loadAndRender();
+  }
+}
+
+cancelButton.addEventListener('click', handleCancel);
+
+// ====== EXPORT CONFIGURATION ======
+async function handleExport() {
+  try {
+    const config = await getConfig();
+
+    // Create JSON blob
+    const jsonStr = JSON.stringify(config, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'job-search-gpt-config.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showSuccess('Configuration exported successfully!');
+  } catch (e) {
+    showError('Failed to export: ' + e.message);
+  }
+}
+
+exportButton.addEventListener('click', handleExport);
+
+// ====== IMPORT CONFIGURATION ======
+function handleImportClick() {
+  importFileInput.click();
+}
+
+async function handleImportFile(e) {
+  try {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const importedConfig = JSON.parse(text);
+
+    // Validate imported config
+    const errors = validateConfig(importedConfig);
+    if (errors.length > 0) {
+      showError('Invalid configuration file: ' + errors.join('; '));
+      importFileInput.value = ''; // Clear file input
+      return;
+    }
+
+    // Confirm import
+    if (!confirm('Import this configuration? Current settings will be replaced.')) {
+      importFileInput.value = '';
+      return;
+    }
+
+    // Save imported config
+    await saveConfig(importedConfig);
+    currentConfig = importedConfig;
+
+    // Reload UI
+    await loadAndRender();
+
+    showSuccess('Configuration imported successfully!');
+    importFileInput.value = ''; // Clear file input
+  } catch (e) {
+    showError('Failed to import: ' + e.message);
+    importFileInput.value = '';
+  }
+}
+
+importButton.addEventListener('click', handleImportClick);
+importFileInput.addEventListener('change', handleImportFile);
+
 // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', loadAndRender);
