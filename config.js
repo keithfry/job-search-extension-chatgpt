@@ -1,5 +1,30 @@
-// ====== IMPORTS ======
-import DEFAULT_CONFIG from './default-config.json' assert { type: 'json' };
+// ====== LOAD DEFAULT CONFIG ======
+let DEFAULT_CONFIG = null;
+
+async function loadDefaultConfig() {
+  if (DEFAULT_CONFIG) return DEFAULT_CONFIG;
+
+  try {
+    const response = await fetch(chrome.runtime.getURL('default-config.json'));
+    DEFAULT_CONFIG = await response.json();
+    return DEFAULT_CONFIG;
+  } catch (e) {
+    console.error('[Config] Failed to load default config:', e);
+    // Fallback to hardcoded minimal config
+    return {
+      globalSettings: {
+        customGptUrl: "https://chatgpt.com/g/g-PLACEHOLDER",
+        gptTitleMatch: "ChatGPT",
+        contextMenuTitle: "Send to Job Search GPT",
+        clearContext: true,
+        autoSubmit: true,
+        runAllEnabled: true,
+        runAllShortcut: "Alt+Shift+H"
+      },
+      actions: []
+    };
+  }
+}
 
 // ====== VALIDATION ======
 function validateConfig(config) {
@@ -85,23 +110,25 @@ function validateConfig(config) {
 async function getConfig() {
   try {
     const { config } = await chrome.storage.sync.get('config');
+    const defaultConfig = await loadDefaultConfig();
 
     if (!config) {
       console.log('[Config] No config found, using defaults');
-      return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      return JSON.parse(JSON.stringify(defaultConfig));
     }
 
     // Validate loaded config
     const errors = validateConfig(config);
     if (errors.length > 0) {
       console.error('[Config] Validation failed, using defaults:', errors);
-      return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      return JSON.parse(JSON.stringify(defaultConfig));
     }
 
     return config;
   } catch (e) {
     console.error('[Config] Error loading config, using defaults:', e);
-    return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    const defaultConfig = await loadDefaultConfig();
+    return JSON.parse(JSON.stringify(defaultConfig));
   }
 }
 
@@ -130,9 +157,10 @@ async function migrateConfig() {
 
   // First time running v2.0.0 - create default config
   console.log('[Config] Migrating to v2.0.0...');
-  await chrome.storage.sync.set({ config: DEFAULT_CONFIG });
+  const defaultConfig = await loadDefaultConfig();
+  await chrome.storage.sync.set({ config: defaultConfig });
   console.log('[Config] Migration complete');
 }
 
 // ====== EXPORTS ======
-export { DEFAULT_CONFIG, validateConfig, getConfig, saveConfig, migrateConfig };
+export { validateConfig, getConfig, saveConfig, migrateConfig };
