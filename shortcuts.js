@@ -11,11 +11,22 @@ function normalizeShortcut(event) {
   if (event.shiftKey) parts.push('Shift');
   if (event.metaKey) parts.push('Meta');
 
-  // Get the key
-  const key = event.key;
+  // Use e.code for physical key (Mac compatibility)
+  // e.code examples: "KeyA", "Digit1", "ArrowUp", "Space"
+  const code = event.code;
 
-  // Normalize key display
-  const displayKey = key.length === 1 ? key.toUpperCase() : key;
+  // Convert code to display key (same logic as options.js)
+  let displayKey;
+  if (code.startsWith('Key')) {
+    displayKey = code.replace('Key', ''); // "KeyY" -> "Y"
+  } else if (code.startsWith('Digit')) {
+    displayKey = code.replace('Digit', ''); // "Digit1" -> "1"
+  } else if (code.startsWith('Arrow')) {
+    displayKey = code.replace('Arrow', ''); // "ArrowUp" -> "Up"
+  } else {
+    displayKey = code; // Use as-is for special keys
+  }
+
   parts.push(displayKey);
 
   return parts.join('+');
