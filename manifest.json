@@ -1,30 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Job Search GPT Actions",
-  "version": "1.6.0",
-  "description": "Right-click or use shortcuts to send selection to Job Search GPT.",
-  "permissions": ["contextMenus", "tabs", "scripting", "activeTab"],
+  "name": "Job Search GPT Actions (v2.0 Dev)",
+  "version": "2.0.0",
+  "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
+  "permissions": [
+    "contextMenus",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://chat.openai.com/*"
   ],
-  "background": { "service_worker": "background.js" },
-  "commands": {
-    "fitMatchShortcut": {
-      "suggested_key": { "default": "Alt+Shift+J" },
-      "description": "Send selection → Fit Match"
-    },
-    "jobSummaryShortcut": {
-      "suggested_key": { "default": "Alt+Shift+K" },
-      "description": "Send selection → Job Summary"
-    },
-    "criticalFitMatchShortcut": {
-      "suggested_key": { "default": "Alt+Shift+L" },
-      "description": "Send selection → Critical Fit Match"
-    },
-    "runAllShortcut": {
-      "suggested_key": { "default": "Alt+Shift+H" },
-      "description": "Send selection → Run All Actions"
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["shortcuts.js"],
+      "run_at": "document_start"
     }
-  }
+  ],
+  "options_page": "options.html"
 }
