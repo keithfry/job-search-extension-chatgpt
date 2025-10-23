@@ -1,0 +1,43 @@
+// ====== DEFAULT CONFIGURATION ======
+// This file contains the default configuration for the extension.
+// Edit this file to customize your default actions, shortcuts, and settings.
+
+const DEFAULT_CONFIG = {
+  globalSettings: {
+    customGptUrl: "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
+    gptTitleMatch: "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
+    contextMenuTitle: "Send to Job Search GPT",
+    clearContext: true,
+    autoSubmit: true,
+    runAllEnabled: true,
+    runAllShortcut: "Alt+Shift+H"
+  },
+  actions: [
+    {
+      id: "jobSummary",
+      title: "Job Summary",
+      prompt: "Create a Job Summary in 5 sentences for following position:",
+      shortcut: "Alt+Shift+J",
+      enabled: true,
+      order: 1
+    },
+    {
+      id: "fitMatch",
+      title: "Fit Match",
+      prompt: "Create a Fit Match, do not create a cover letter:",
+      shortcut: "Alt+Shift+K",
+      enabled: true,
+      order: 2
+    },
+    {
+      id: "criticalFitMatch",
+      title: "Critical Fit Match",
+      prompt: "think long, be critical, and provide a Fit Match with no cover letter:",
+      shortcut: "Alt+Shift+L",
+      enabled: true,
+      order: 3
+    }
+  ]
+};
+
+export { DEFAULT_CONFIG };
