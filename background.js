@@ -57,8 +57,8 @@ async function rebuildContextMenus() {
       });
     });
 
-    // Create "Run All" menu item if there are multiple actions
-    if (enabledActions.length > 1) {
+    // Create "Run All" menu item if enabled and there are multiple actions
+    if (config.globalSettings.runAllEnabled && enabledActions.length > 1) {
       chrome.contextMenus.create({
         id: 'runAll',
         parentId: 'jobSearchRoot',
@@ -464,30 +464,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'EXECUTE_SHORTCUT') {
     // Content script triggered a shortcut
-    handleShortcutExecution(message.actionId, sender.tab.id);
+    if (message.selectionText) {
+      handleShortcutExecution(message.actionId, message.selectionText);
+    } else {
+      console.error('[Background] No selection text in shortcut message');
+    }
     return false;
   }
 });
 
 // ====== SHORTCUT EXECUTION HANDLER ======
-async function handleShortcutExecution(actionId, senderTabId) {
+async function handleShortcutExecution(actionId, selectionText) {
   try {
     const config = await loadConfig();
 
-    // Get selected text from the sender tab
-    const [{ result: selection = '' } = {}] = await chrome.scripting.executeScript({
-      target: { tabId: senderTabId },
-      func: () => (getSelection?.() ? String(getSelection()).trim() : '')
-    });
-
-    if (!selection) {
-      console.log('[Background] No text selected for shortcut');
-      return;
-    }
-
     // Handle "Run All" shortcut
     if (actionId === 'runAll') {
-      await runAllActions(selection, config);
+      await runAllActions(selectionText, config);
       return;
     }
 
@@ -499,7 +492,7 @@ async function handleShortcutExecution(actionId, senderTabId) {
     }
 
     // Execute the action
-    await executeAction(action, selection, config);
+    await executeAction(action, selectionText, config);
   } catch (e) {
     console.error('[Background] Failed to handle shortcut execution:', e);
   }

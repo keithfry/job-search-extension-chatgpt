@@ -66,10 +66,31 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
     event.stopPropagation();
 
+    // Check if extension context is still valid
+    if (!chrome.runtime?.id) {
+      console.log('[Shortcuts] Extension reloaded - please refresh this page to use shortcuts');
+      return;
+    }
+
+    // Get selected text
+    const selection = window.getSelection?.() ? String(window.getSelection()).trim() : '';
+    if (!selection) {
+      console.log('[Shortcuts] No text selected');
+      return;
+    }
+
     // Send message to background to execute action
     chrome.runtime.sendMessage({
       type: 'EXECUTE_SHORTCUT',
-      actionId: actionId
+      actionId: actionId,
+      selectionText: selection
+    }).catch(error => {
+      // Extension context invalidated - happens after extension reload
+      if (error.message?.includes('Extension context invalidated')) {
+        console.log('[Shortcuts] Extension reloaded - please refresh this page to use shortcuts');
+      } else {
+        console.error('[Shortcuts] Failed to send message:', error);
+      }
     });
   }
 }, true); // Use capture phase to intercept early
