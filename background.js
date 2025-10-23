@@ -29,44 +29,52 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 // ====== CONTEXT MENU MANAGEMENT ======
 async function rebuildContextMenus() {
-  // Clear all existing menus
-  await chrome.contextMenus.removeAll();
+  try {
+    // Clear all existing menus
+    await chrome.contextMenus.removeAll();
 
-  // Load current config
-  const config = await loadConfig();
+    // Load current config
+    const config = await loadConfig();
 
-  // Create root menu
-  chrome.contextMenus.create({
-    id: 'jobSearchRoot',
-    title: 'Send to Job Search GPT',
-    contexts: ['selection']
-  });
-
-  // Create menu item for each enabled action
-  const enabledActions = config.actions
-    .filter(action => action.enabled)
-    .sort((a, b) => a.order - b.order);
-
-  enabledActions.forEach(action => {
+    // Create root menu
     chrome.contextMenus.create({
-      id: action.id,
-      parentId: 'jobSearchRoot',
-      title: action.title,
+      id: 'jobSearchRoot',
+      title: 'Send to Job Search GPT',
       contexts: ['selection']
     });
-  });
 
-  // Create "Run All" menu item if there are multiple actions
-  if (enabledActions.length > 1) {
-    chrome.contextMenus.create({
-      id: 'runAll',
-      parentId: 'jobSearchRoot',
-      title: 'Run All Actions',
-      contexts: ['selection']
+    // Create menu item for each enabled action
+    const enabledActions = config.actions
+      .filter(action => action.enabled)
+      .sort((a, b) => a.order - b.order);
+
+    enabledActions.forEach(action => {
+      chrome.contextMenus.create({
+        id: action.id,
+        parentId: 'jobSearchRoot',
+        title: action.title,
+        contexts: ['selection']
+      });
     });
+
+    // Create "Run All" menu item if there are multiple actions
+    if (enabledActions.length > 1) {
+      chrome.contextMenus.create({
+        id: 'runAll',
+        parentId: 'jobSearchRoot',
+        title: 'Run All Actions',
+        contexts: ['selection']
+      });
+    }
+
+    console.log('[Background] Context menus rebuilt:', enabledActions.length, 'actions');
+  } catch (e) {
+    console.error('[Background] Error rebuilding context menus:', e);
+    // If menus already exist, this is expected during reload - just log it
+    if (e.message && e.message.includes('duplicate')) {
+      console.log('[Background] Menus already exist, skipping rebuild');
+    }
   }
-
-  console.log('[Background] Context menus rebuilt:', enabledActions.length, 'actions');
 }
 
 // ====== SHORTCUT MAP BUILDER ======
