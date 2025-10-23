@@ -1,0 +1,356 @@
+/* ====== RESET & BASE ====== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+/* ====== CONTAINER ====== */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+/* ====== HEADER ====== */
+header {
+  margin-bottom: 32px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 16px;
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+header .subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* ====== BANNERS ====== */
+.error-banner,
+.success-banner {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.error-banner {
+  background: #fce4e4;
+  border: 1px solid #fcc2c3;
+  color: #cc0033;
+}
+
+.success-banner {
+  background: #e6f4ea;
+  border: 1px solid #81c995;
+  color: #137333;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ====== SECTIONS ====== */
+.settings-section,
+.actions-section,
+.import-export-section {
+  margin-bottom: 32px;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #202124;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* ====== FORM GROUPS ====== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #5f6368;
+}
+
+.form-group input[type="text"],
+.form-group input[type="url"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="url"]:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+}
+
+.form-group input[type="text"].error,
+.form-group input[type="url"].error {
+  border-color: #d93025;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* ====== CHECKBOXES ====== */
+.form-group.checkboxes label {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.form-group.checkboxes input[type="checkbox"] {
+  margin-right: 8px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.form-group.checkboxes span {
+  font-weight: 500;
+  color: #5f6368;
+}
+
+.form-group.checkboxes small {
+  margin-left: 24px;
+  margin-top: 0;
+}
+
+/* ====== ACTIONS LIST ====== */
+#actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-item {
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  padding: 16px;
+  background: #f8f9fa;
+  transition: box-shadow 0.2s;
+}
+
+.action-item:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-item.dragging {
+  opacity: 0.5;
+}
+
+/* ====== ACTION HEADER ====== */
+.action-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.drag-handle {
+  font-size: 20px;
+  color: #999;
+  cursor: move;
+  user-select: none;
+  padding: 4px;
+}
+
+.drag-handle:hover {
+  color: #666;
+}
+
+.action-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+}
+
+.action-controls {
+  display: flex;
+  gap: 4px;
+}
+
+/* ====== ACTION BODY ====== */
+.action-body {
+  padding-left: 32px;
+}
+
+.action-body .form-group {
+  margin-bottom: 12px;
+}
+
+.action-body .action-prompt {
+  width: 100%;
+}
+
+/* ====== SHORTCUT CAPTURE ====== */
+.shortcut-group {
+  max-width: 300px;
+}
+
+.shortcut-capture {
+  display: flex;
+  gap: 8px;
+}
+
+.shortcut-capture input {
+  flex: 1;
+  background: #fff;
+  cursor: default;
+}
+
+.shortcut-capture input.capturing {
+  border-color: #1a73e8;
+  background: #e8f0fe;
+}
+
+/* ====== BUTTONS ====== */
+.btn-primary,
+.btn-secondary,
+.btn-icon {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary {
+  background: #1a73e8;
+  color: white;
+  padding: 10px 24px;
+}
+
+.btn-primary:hover {
+  background: #1557b0;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  background: #dadce0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+  padding: 8px 16px;
+}
+
+.btn-secondary:hover {
+  background: #f8f9fa;
+  border-color: #1a73e8;
+}
+
+.btn-icon {
+  background: transparent;
+  color: #5f6368;
+  padding: 4px 8px;
+  font-size: 16px;
+  min-width: 32px;
+}
+
+.btn-icon:hover {
+  background: #e8eaed;
+  color: #202124;
+}
+
+.btn-delete {
+  color: #d93025;
+}
+
+.btn-delete:hover {
+  background: #fce4e4;
+  color: #a50e0e;
+}
+
+.btn-capture {
+  font-size: 18px;
+}
+
+/* ====== IMPORT/EXPORT SECTION ====== */
+.import-export-section {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+/* ====== FOOTER ====== */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+
+  .container {
+    padding: 20px;
+  }
+
+  .action-body {
+    padding-left: 0;
+  }
+
+  .import-export-section {
+    flex-direction: column;
+  }
+}
