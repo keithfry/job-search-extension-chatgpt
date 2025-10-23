@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Job Search GPT Actions - Configuration</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Job Search GPT Actions</h1>
+      <p class="subtitle">Configuration</p>
+    </header>
+
+    <!-- Error banner (hidden by default) -->
+    <div id="error-banner" class="error-banner hidden"></div>
+
+    <!-- Success banner (hidden by default) -->
+    <div id="success-banner" class="success-banner hidden"></div>
+
+    <!-- Global Settings Section -->
+    <section class="settings-section">
+      <h2>Global Settings</h2>
+      <div class="form-group">
+        <label for="customGptUrl">Custom GPT URL</label>
+        <input
+          type="url"
+          id="customGptUrl"
+          placeholder="https://chatgpt.com/g/g-..."
+          required
+        />
+        <small>The URL of your custom ChatGPT assistant</small>
+      </div>
+
+      <div class="form-group">
+        <label for="gptTitleMatch">GPT Tab Title Match</label>
+        <input
+          type="text"
+          id="gptTitleMatch"
+          placeholder="ChatGPT - Your GPT Name"
+          required
+        />
+        <small>Browser tab title to match when finding existing GPT tabs</small>
+      </div>
+
+      <div class="form-group checkboxes">
+        <label>
+          <input type="checkbox" id="clearContext" />
+          <span>Clear Context</span>
+          <small>Start fresh conversation each time</small>
+        </label>
+
+        <label>
+          <input type="checkbox" id="autoSubmit" />
+          <span>Auto Submit</span>
+          <small>Automatically submit prompts without manual send</small>
+        </label>
+      </div>
+    </section>
+
+    <!-- Actions Section -->
+    <section class="actions-section">
+      <div class="section-header">
+        <h2>Actions</h2>
+        <button id="add-action" class="btn-secondary">+ Add Action</button>
+      </div>
+
+      <div id="actions-list">
+        <!-- Actions will be dynamically inserted here -->
+      </div>
+    </section>
+
+    <!-- Import/Export Section -->
+    <section class="import-export-section">
+      <button id="export-config" class="btn-secondary">Export JSON</button>
+      <button id="import-config" class="btn-secondary">Import JSON</button>
+      <input type="file" id="import-file-input" accept=".json" style="display: none;" />
+    </section>
+
+    <!-- Save/Cancel Buttons -->
+    <footer class="footer">
+      <button id="save" class="btn-primary">Save</button>
+      <button id="cancel" class="btn-secondary">Cancel</button>
+    </footer>
+  </div>
+
+  <!-- Action Item Template (hidden) -->
+  <template id="action-template">
+    <div class="action-item" data-action-id="">
+      <div class="action-header">
+        <span class="drag-handle" title="Drag to reorder">≡</span>
+        <input type="text" class="action-title" placeholder="Action Title" />
+        <div class="action-controls">
+          <button class="btn-icon" data-action="move-up" title="Move up">↑</button>
+          <button class="btn-icon" data-action="move-down" title="Move down">↓</button>
+          <button class="btn-icon btn-delete" data-action="delete" title="Delete">×</button>
+        </div>
+      </div>
+      <div class="action-body">
+        <div class="form-group">
+          <label>Prompt</label>
+          <input type="text" class="action-prompt" placeholder="Message to send to GPT..." />
+        </div>
+        <div class="form-group shortcut-group">
+          <label>Keyboard Shortcut</label>
+          <div class="shortcut-capture">
+            <input type="text" class="action-shortcut" placeholder="None" readonly />
+            <button class="btn-icon btn-capture" title="Record shortcut">⌨️</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" class="action-enabled" />
+            <span>Enabled</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
