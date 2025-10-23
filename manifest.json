@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Job Search GPT Actions",
+  "name": "Job Search GPT Actions (v2.0 Dev)",
   "version": "2.0.0",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [
