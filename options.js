@@ -206,6 +206,14 @@ function captureShortcut(shortcutInput) {
     e.preventDefault();
     e.stopPropagation();
 
+    // Get the key first
+    const key = e.key;
+
+    // Ignore if it's just a modifier key by itself
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(key)) {
+      return; // Keep listening for the actual key
+    }
+
     // Build shortcut string
     const parts = [];
     if (e.ctrlKey) parts.push('Ctrl');
@@ -222,18 +230,15 @@ function captureShortcut(shortcutInput) {
       return;
     }
 
-    // Get the key (ignore modifiers themselves)
-    const key = e.key;
-    if (!['Control', 'Alt', 'Shift', 'Meta'].includes(key)) {
-      const displayKey = key.length === 1 ? key.toUpperCase() : key;
-      parts.push(displayKey);
+    // Add the actual key
+    const displayKey = key.length === 1 ? key.toUpperCase() : key;
+    parts.push(displayKey);
 
-      const shortcutString = parts.join('+');
-      shortcutInput.value = shortcutString;
+    const shortcutString = parts.join('+');
+    shortcutInput.value = shortcutString;
 
-      // Check for duplicates
-      checkShortcutDuplicate(shortcutInput, shortcutString);
-    }
+    // Check for duplicates
+    checkShortcutDuplicate(shortcutInput, shortcutString);
 
     shortcutInput.classList.remove('capturing');
     document.removeEventListener('keydown', handleKeyDown, true);
