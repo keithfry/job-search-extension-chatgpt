@@ -15,7 +15,7 @@ async function loadDefaultConfig() {
       globalSettings: {
         customGptUrl: "https://chatgpt.com/g/g-PLACEHOLDER",
         gptTitleMatch: "ChatGPT",
-        contextMenuTitle: "Send to Job Search GPT",
+        contextMenuTitle: "Send to ChatGPT",
         clearContext: true,
         autoSubmit: true,
         runAllEnabled: true,

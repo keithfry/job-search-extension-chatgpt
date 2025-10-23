@@ -7,7 +7,7 @@
 
 ## Overview
 
-Transform the Chrome-only Job Search GPT Actions extension into a cross-browser extension that works seamlessly on both Chrome and Firefox, using a single codebase with Mozilla's webextension-polyfill for compatibility.
+Transform the Chrome-only ChatGPT Actions extension into a cross-browser extension that works seamlessly on both Chrome and Firefox, using a single codebase with Mozilla's webextension-polyfill for compatibility.
 
 ## Goals
 
@@ -104,7 +104,7 @@ Minimal changes from current manifest.json:
 ```json
 {
   "manifest_version": 3,
-  "name": "Job Search GPT Actions",
+  "name": "ChatGPT Actions",
   "version": "2.1.0",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [
@@ -145,7 +145,7 @@ Firefox-specific manifest with required differences:
 ```json
 {
   "manifest_version": 3,
-  "name": "Job Search GPT Actions",
+  "name": "ChatGPT Actions",
   "version": "2.1.0",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [
@@ -165,7 +165,7 @@ Firefox-specific manifest with required differences:
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "job-search-gpt@keithfry.com",
+      "id": "chatgpt-actions@keithfry.com",
       "strict_min_version": "109.0"
     }
   },
@@ -240,15 +240,15 @@ async function build() {
     );
 
     // Create ZIP for distribution
-    const zipName = `job-search-gpt-${browser}-v2.1.0.zip`;
+    const zipName = `chatgpt-actions-${browser}-v2.1.0.zip`;
     execSync(`cd ${distPath} && zip -r ../${zipName} .`);
 
     console.log(`✓ Created ${zipName}`);
   }
 
   console.log('\n✅ Build complete!');
-  console.log(`   Chrome: ${DIST_DIR}/job-search-gpt-chrome-v2.1.0.zip`);
-  console.log(`   Firefox: ${DIST_DIR}/job-search-gpt-firefox-v2.1.0.zip`);
+  console.log(`   Chrome: ${DIST_DIR}/chatgpt-actions-chrome-v2.1.0.zip`);
+  console.log(`   Firefox: ${DIST_DIR}/chatgpt-actions-firefox-v2.1.0.zip`);
 }
 
 build().catch(console.error);
@@ -277,7 +277,7 @@ build().catch(console.error);
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Job Search GPT Actions - Configuration</title>
+  <title>ChatGPT Actions - Configuration</title>
   <link rel="stylesheet" href="options.css">
   <!-- Load polyfill first -->
   <script src="webextension-polyfill.js"></script>
@@ -450,7 +450,7 @@ async function loadDefaultConfig() {
 1. Visit [Firefox Add-ons page] (when published)
 2. Click "Add to Firefox"
 3. Grant requested permissions
-4. Configure via Tools → Add-ons → Job Search GPT Actions → Options
+4. Configure via Tools → Add-ons → ChatGPT Actions → Options
 
 ## Installing from Source (Developer)
 
@@ -512,7 +512,7 @@ Document the build process, cross-browser testing workflow, and release procedur
 
 ```json
 {
-  "name": "job-search-gpt-actions",
+  "name": "chatgpt-actions",
   "version": "2.1.0",
   "scripts": {
     "build": "node build.js",
@@ -556,7 +556,7 @@ Document the build process, cross-browser testing workflow, and release procedur
 
 **Description:**
 ```
-Streamline your job search workflow by sending job descriptions
+Send selected text
 to your custom ChatGPT assistant with a simple right-click.
 
 Features:
@@ -662,8 +662,8 @@ job-search-extension-chatgpt/
 │   ├── firefox/
 │   │   ├── manifest.json
 │   │   └── ... (all source files)
-│   ├── job-search-gpt-chrome-v2.1.0.zip
-│   └── job-search-gpt-firefox-v2.1.0.zip
+│   ├── chatgpt-actions-chrome-v2.1.0.zip
+│   └── chatgpt-actions-firefox-v2.1.0.zip
 ├── docs/
 │   ├── FIREFOX.md                # NEW: Firefox-specific docs
 │   ├── BUILDING.md               # NEW: Build process docs

@@ -122,6 +122,13 @@ h2 {
 .form-group input[type="text"].error,
 .form-group input[type="url"].error {
   border-color: #d93025;
+  box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.1);
+}
+
+.action-title.error,
+.action-prompt.error {
+  border-color: #d93025;
+  box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.1);
 }
 
 .form-group small {
@@ -129,6 +136,11 @@ h2 {
   margin-top: 4px;
   font-size: 12px;
   color: #999;
+}
+
+.required {
+  color: #d93025;
+  font-weight: 600;
 }
 
 /* ====== CHECKBOXES ====== */

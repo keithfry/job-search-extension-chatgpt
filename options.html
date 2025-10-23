@@ -2,13 +2,13 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Job Search GPT Actions - Configuration</title>
+  <title>ChatGPT Actions - Configuration</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Job Search GPT Actions</h1>
+      <h1>ChatGPT Actions</h1>
       <p class="subtitle">Configuration</p>
     </header>
 
@@ -37,7 +37,7 @@
         <input
           type="text"
           id="contextMenuTitle"
-          placeholder="Send to Job Search GPT"
+          placeholder="Send to ChatGPT"
           required
         />
         <small>The title shown in the right-click context menu</small>
@@ -100,7 +100,7 @@
     <div class="action-item" data-action-id="">
       <div class="action-header">
         <span class="drag-handle" title="Drag to reorder">≡</span>
-        <input type="text" class="action-title" placeholder="Action Title" />
+        <input type="text" class="action-title" placeholder="Action Title *" />
         <div class="action-controls">
           <button class="btn-icon" data-action="move-up" title="Move up">↑</button>
           <button class="btn-icon" data-action="move-down" title="Move down">↓</button>
@@ -109,7 +109,7 @@
       </div>
       <div class="action-body">
         <div class="form-group">
-          <label>Prompt</label>
+          <label>Prompt <span class="required">*</span></label>
           <input type="text" class="action-prompt" placeholder="Message to send to GPT..." />
         </div>
         <div class="form-group shortcut-group">

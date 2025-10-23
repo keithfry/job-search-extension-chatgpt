@@ -1,6 +1,6 @@
-# Job Search GPT Actions - Chrome Extension
+# ChatGPT Actions - Chrome Extension
 
-A Chrome extension that streamlines job search workflows by sending selected text to a custom Job Search ChatGPT assistant for analysis and cover letter assistance. **Now with fully configurable actions, shortcuts, and settings!**
+A Chrome extension that allows you to send selected text to your custom ChatGPT assistant with configurable actions, shortcuts, and settings.
 
 ## Features
 
@@ -19,13 +19,13 @@ A Chrome extension that streamlines job search workflows by sending selected tex
 The extension comes with three pre-configured actions (fully customizable via options page):
 
 ### 1. Fit Match (Alt+Shift+J) — *Mac: Option+Shift+J*
-Analyzes how well your background fits a job description.
+Example action for analyzing text.
 
 ### 2. Job Summary (Alt+Shift+K) — *Mac: Option+Shift+K*
-Creates a concise summary of a job posting.
+Example action for creating summaries.
 
 ### 3. Critical Fit Match (Alt+Shift+L) — *Mac: Option+Shift+L*
-Provides a critical, thorough analysis of job fit.
+Example action for detailed analysis.
 
 ### 4. Run All Actions (customizable shortcut)
 Runs all enabled actions simultaneously in separate browser tabs for parallel processing.
@@ -57,21 +57,14 @@ Runs all enabled actions simultaneously in separate browser tabs for parallel pr
 
 ## Custom GPT Configuration
 
-To get the most out of this extension, you should create a custom ChatGPT configured specifically for job search analysis.
+To get the most out of this extension, you should create a custom ChatGPT configured for your specific use case.
 
 ### Creating Your Custom GPT
 
 1. **Navigate to ChatGPT**: Go to [chatgpt.com](https://chatgpt.com) (requires ChatGPT Plus)
 2. **Create New GPT**: Click your profile → "My GPTs" → "Create a GPT"
-3. **Name Your GPT**: Choose a descriptive name (e.g., "Job Search Assistant")
-4. **Configure Instructions**: Add custom instructions that include:
-   - Your resume or key background information
-   - Your skills and experience levels
-   - What you're looking for in job fit analysis
-   - How you want job summaries formatted
-   - Any specific criteria for evaluating opportunities
-
-[Example: My Custom Prompt](my-custom-prompt.txt)
+3. **Name Your GPT**: Choose a descriptive name for your assistant
+4. **Configure Instructions**: Add custom instructions tailored to your needs
 
 ### Getting Your Custom GPT URL
 
@@ -87,9 +80,9 @@ After creating your GPT:
 ## Usage
 
 ### Context Menu
-1. Select text on any webpage (e.g., a job description)
+1. Select text on any webpage
 2. Right-click the selection
-3. Choose "Send to Job Search GPT" > Select an action
+3. Choose your configured action from the context menu
 4. The extension will open/focus your GPT tab and insert the text
 
 ### Keyboard Shortcuts
@@ -110,7 +103,7 @@ After creating your GPT:
 
 **v1.6.0 and earlier:**
 1. Go to `chrome://extensions/shortcuts`
-2. Find "Job Search GPT Actions"
+2. Find "ChatGPT Actions"
 3. Click the edit icon to set your preferred shortcuts
 
 ## Import/Export Configuration
@@ -119,7 +112,7 @@ After creating your GPT:
 
 1. Open Extension options
 2. Click "Export JSON"
-3. Save the downloaded `job-search-gpt-config.json` file
+3. Save the downloaded `chatgpt-actions-config.json` file
 
 Use this to:
 - Backup your configuration
@@ -215,7 +208,7 @@ The extension implements request deduplication at the page level:
 
 ### Project Structure
 ```
-job-search-extension-chatgpt/
+chatgpt-query-extension/
 ├── manifest.json          # Extension configuration (Manifest V3)
 ├── background.js          # Service worker - main extension logic
 ├── config.js              # Configuration module with defaults and validation
@@ -233,7 +226,7 @@ No build step required - this is a pure JavaScript extension.
 1. Load extension in Chrome
 2. Navigate to any webpage with text
 3. Select text and test each action
-4. Check console logs for debugging: `[JobSearchExt]` prefix
+4. Check console logs for debugging
 
 ### Debugging
 Enable verbose logging in Chrome DevTools:
@@ -338,8 +331,8 @@ For issues or questions:
 
 ## Credits
 
-Developed for streamlining job search workflows with custom ChatGPT assistants.
+A flexible Chrome extension for sending selected text to custom ChatGPT assistants.
 
 ---
 
-**Note**: This extension requires a ChatGPT Plus subscription and a custom GPT configured for job search assistance. Configure your Custom GPT URL via the extension's options page.
+**Note**: This extension requires a ChatGPT Plus subscription and a custom GPT. Configure your Custom GPT URL via the extension's options page.

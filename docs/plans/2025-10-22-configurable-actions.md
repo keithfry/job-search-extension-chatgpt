@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Transform the Job Search GPT Actions extension from hardcoded actions to a fully configurable system with options page, custom shortcuts, and JSON import/export.
+**Goal:** Transform the ChatGPT Actions extension from hardcoded actions to a fully configurable system with options page, custom shortcuts, and JSON import/export.
 
 **Architecture:** Storage-Driven Dynamic System using chrome.storage.sync as source of truth, with reactive updates triggering context menu and keyboard shortcut rebuilds. Custom keyboard handler in content script enables unlimited shortcuts.
 
@@ -22,7 +22,7 @@ Update manifest.json to version 2.0.0 with new permissions:
 ```json
 {
   "manifest_version": 3,
-  "name": "Job Search GPT Actions",
+  "name": "ChatGPT Actions",
   "version": "2.0.0",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [
@@ -325,13 +325,13 @@ Create `options.html` with complete structure:
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Job Search GPT Actions - Configuration</title>
+  <title>ChatGPT Actions - Configuration</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Job Search GPT Actions</h1>
+      <h1>ChatGPT Actions</h1>
       <p class="subtitle">Configuration</p>
     </header>
 
@@ -450,7 +450,7 @@ Create `options.html` with complete structure:
 
 Open options page:
 1. Go to `chrome://extensions/`
-2. Find "Job Search GPT Actions"
+2. Find "ChatGPT Actions"
 3. Click "Extension options"
 
 Expected: Page opens but shows unstyled HTML (CSS not created yet - that's OK)
@@ -1422,7 +1422,7 @@ async function handleExport() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'job-search-gpt-config.json';
+    a.download = 'chatgpt-actions-config.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1725,7 +1725,7 @@ async function rebuildContextMenus() {
   // Create root menu
   chrome.contextMenus.create({
     id: 'jobSearchRoot',
-    title: 'Send to Job Search GPT',
+    title: 'Send to ChatGPT',
     contexts: ['selection']
   });
 
@@ -2001,7 +2001,7 @@ url: `https://chatgpt.com/?q=${encodeURIComponent("Could not auto-insert text. P
 1. Reload extension
 2. Navigate to any webpage with text
 3. Select some text
-4. Right-click → "Send to Job Search GPT" → should show 3 actions + "Run All"
+4. Right-click → "Send to ChatGPT" → should show 3 actions + "Run All"
 5. Click "Fit Match" → should open GPT tab and insert text
 
 Expected: Action executes successfully with dynamic config
@@ -2254,7 +2254,7 @@ Verify:
 Test parallel execution:
 1. Navigate to webpage with job description
 2. Select job description text
-3. Right-click → "Send to Job Search GPT" → "Run All Actions"
+3. Right-click → "Send to ChatGPT" → "Run All Actions"
 
 Verify:
 - 3 new tabs open (one per enabled action)
@@ -2336,9 +2336,9 @@ Update the top section of README.md:
 Find lines 1-15 and update:
 
 ```markdown
-# Job Search GPT Actions - Chrome Extension
+# ChatGPT Actions - Chrome Extension
 
-A Chrome extension that streamlines job search workflows by sending selected text to a custom Job Search ChatGPT assistant for analysis and cover letter assistance. **Now with fully configurable actions, shortcuts, and settings!**
+A Chrome extension that allows you to send selected text to your custom ChatGPT assistant with configurable actions, shortcuts, and settings.
 
 ## Features
 
@@ -2411,7 +2411,7 @@ Update "Customizing Shortcuts" subsection (around line 99):
 
 **v1.6.0 and earlier:**
 1. Go to `chrome://extensions/shortcuts`
-2. Find "Job Search GPT Actions"
+2. Find "ChatGPT Actions"
 3. Click the edit icon to set your preferred shortcuts
 ```
 
@@ -2426,7 +2426,7 @@ Add after the Usage section (around line 103):
 
 1. Open Extension options
 2. Click "Export JSON"
-3. Save the downloaded `job-search-gpt-config.json` file
+3. Save the downloaded `chatgpt-actions-config.json` file
 
 Use this to:
 - Backup your configuration
@@ -2646,7 +2646,7 @@ The implementation is complete and tested. Branch is ready for:
 
 ## Plan Complete
 
-This implementation plan provides bite-sized, executable tasks to transform the Job Search GPT Actions extension from a hardcoded system to a fully configurable platform. Each task includes:
+This implementation plan provides bite-sized, executable tasks to transform the ChatGPT Actions extension from a hardcoded system to a fully configurable platform. Each task includes:
 
 - ✅ Exact file paths
 - ✅ Complete code snippets

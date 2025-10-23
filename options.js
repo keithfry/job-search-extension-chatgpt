@@ -106,6 +106,22 @@ function attachActionEventListeners(actionItem) {
   const shortcutInput = actionItem.querySelector('.action-shortcut');
   captureBtn.addEventListener('click', () => captureShortcut(shortcutInput));
 
+  // Remove error styling when user types in required fields
+  const titleInput = actionItem.querySelector('.action-title');
+  const promptInput = actionItem.querySelector('.action-prompt');
+
+  titleInput.addEventListener('input', () => {
+    if (titleInput.value.trim()) {
+      titleInput.classList.remove('error');
+    }
+  });
+
+  promptInput.addEventListener('input', () => {
+    if (promptInput.value.trim()) {
+      promptInput.classList.remove('error');
+    }
+  });
+
   // Drag and drop
   const dragHandle = actionItem.querySelector('.drag-handle');
   dragHandle.addEventListener('mousedown', () => {
@@ -317,7 +333,12 @@ async function handleSave() {
   try {
     hideAllBanners();
 
-    // Build config from form
+    // Clear all previous error states
+    document.querySelectorAll('.action-title, .action-prompt').forEach(input => {
+      input.classList.remove('error');
+    });
+
+    // Build config from form and validate required fields
     const newConfig = {
       globalSettings: {
         customGptUrl: customGptUrlInput.value.trim(),
@@ -331,14 +352,30 @@ async function handleSave() {
       actions: []
     };
 
-    // Collect actions from DOM
+    // Collect actions from DOM and validate required fields
     const actionItems = actionsListContainer.querySelectorAll('.action-item');
+    let hasEmptyRequiredFields = false;
+
     actionItems.forEach((item, index) => {
       const id = item.dataset.actionId;
-      const title = item.querySelector('.action-title').value.trim();
-      const prompt = item.querySelector('.action-prompt').value.trim();
+      const titleInput = item.querySelector('.action-title');
+      const promptInput = item.querySelector('.action-prompt');
       const shortcut = item.querySelector('.action-shortcut').value.trim();
       const enabled = item.querySelector('.action-enabled').checked;
+
+      const title = titleInput.value.trim();
+      const prompt = promptInput.value.trim();
+
+      // Validate required fields
+      if (!title) {
+        titleInput.classList.add('error');
+        hasEmptyRequiredFields = true;
+      }
+
+      if (!prompt) {
+        promptInput.classList.add('error');
+        hasEmptyRequiredFields = true;
+      }
 
       newConfig.actions.push({
         id: id,
@@ -349,6 +386,12 @@ async function handleSave() {
         order: index + 1
       });
     });
+
+    // If there are empty required fields, show error and don't save
+    if (hasEmptyRequiredFields) {
+      showError('Please fill in all required fields (Action Title and Prompt)');
+      return;
+    }
 
     // Validate
     const errors = validateConfig(newConfig);
@@ -420,7 +463,7 @@ async function handleExport() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'job-search-gpt-config.json';
+    a.download = 'chatgpt-actions-config.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

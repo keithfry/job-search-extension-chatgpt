@@ -2,7 +2,7 @@
   "globalSettings": {
     "customGptUrl": "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
     "gptTitleMatch": "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
-    "contextMenuTitle": "Send to Job Search GPT",
+    "contextMenuTitle": "Send to ChatGPT",
     "clearContext": true,
     "autoSubmit": true,
     "runAllEnabled": true,

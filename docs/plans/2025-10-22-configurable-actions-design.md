@@ -8,7 +8,7 @@
 
 ## Overview
 
-Transform the Job Search GPT Actions Chrome extension from a hardcoded system into a fully configurable platform where users can define, customize, and manage their own actions, keyboard shortcuts, and global settings through a user-friendly options page.
+Transform the ChatGPT Actions Chrome extension from a hardcoded system into a fully configurable platform where users can define, customize, and manage their own actions, keyboard shortcuts, and global settings through a user-friendly options page.
 
 ## Goals
 
@@ -70,7 +70,7 @@ const DEFAULT_CONFIG = {
   globalSettings: {
     customGptUrl: "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
     gptTitleMatch: "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
-    contextMenuTitle: "Send to Job Search GPT",
+    contextMenuTitle: "Send to ChatGPT",
     clearContext: true,
     autoSubmit: true,
     runAllEnabled: true,
@@ -214,7 +214,7 @@ Export:
   User clicks Export Config
     → Load current config from storage
     → Create JSON blob
-    → Download as job-search-gpt-config.json
+    → Download as chatgpt-actions-config.json
 
 Import:
   User clicks Import Config
@@ -318,7 +318,7 @@ function normalizeShortcut(event) {
 
 ```
 ┌─────────────────────────────────────────┐
-│  Job Search GPT Actions - Configuration │
+│  ChatGPT Actions - Configuration │
 ├─────────────────────────────────────────┤
 │                                         │
 │  Global Settings                        │
@@ -540,7 +540,7 @@ async function migrateConfig() {
 ```json
 {
   "manifest_version": 3,
-  "name": "Job Search GPT Actions",
+  "name": "ChatGPT Actions",
   "version": "2.0.0",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [
