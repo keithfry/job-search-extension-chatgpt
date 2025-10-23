@@ -14,24 +14,6 @@ A Chrome extension that allows you to send selected text to your custom ChatGPT 
 - **Parallel Processing**: Run all actions simultaneously in separate tabs
 - **Robust Injection**: Automatic retry on failure with fresh context option
 
-## Default Actions
-
-The extension comes with three pre-configured actions (fully customizable via options page):
-
-### 1. Fit Match (Alt+Shift+J) — *Mac: Option+Shift+J*
-Example action for analyzing text.
-
-### 2. Job Summary (Alt+Shift+K) — *Mac: Option+Shift+K*
-Example action for creating summaries.
-
-### 3. Critical Fit Match (Alt+Shift+L) — *Mac: Option+Shift+L*
-Example action for detailed analysis.
-
-### 4. Run All Actions (customizable shortcut)
-Runs all enabled actions simultaneously in separate browser tabs for parallel processing.
-
-**Note:** All actions, their prompts, and shortcuts are fully configurable via the extension's options page.
-
 ## Installation
 
 ### From Source
@@ -87,11 +69,7 @@ After creating your GPT:
 
 ### Keyboard Shortcuts
 1. Select text on any webpage
-2. Press one of the keyboard shortcuts:
-   - **Alt+Shift+J**: Fit Match — *Mac: Option+Shift+J*
-   - **Alt+Shift+K**: Job Summary — *Mac: Option+Shift+K*
-   - **Alt+Shift+L**: Critical Fit Match — *Mac: Option+Shift+L*
-   - **Alt+Shift+H**: Run All Actions — *Mac: Option+Shift+H*
+2. Press your configured keyboard shortcut
 
 ### Customizing Shortcuts
 
@@ -265,6 +243,7 @@ Potential improvements for future versions:
 - Status notifications instead of alerts
 - Support for Claude/other AI assistants
 - Action templates marketplace
+- Support for other browsers
 
 ## Version History
 
@@ -300,27 +279,11 @@ Potential improvements for future versions:
 - Retry logic
 - Tab management
 
-## Upgrading from v1.6.0 to v2.0.0
-
-### Automatic Migration
-
-When you first load v2.0.0, your existing hardcoded configuration will be automatically migrated to the new options page. No action required!
-
-**What's Migrated:**
-- All three default actions (Fit Match, Job Summary, Critical Fit Match)
-- Default keyboard shortcuts (Alt+Shift+J, K, L)
-- GPT URL and title match
-- Auto-submit and clear context settings
-
-### Important Notes
-
-- **Downgrading:** You cannot downgrade from v2.0.0 to v1.6.0 without losing your configuration. Export your config first if you need to downgrade.
-- **Customizations:** If you modified `background.js` directly in v1.6.0, those customizations will be lost. Use the options page in v2.0.0 instead.
-- **Backup:** Consider exporting your configuration after migration to keep a backup.
-
 ## License
 
-This is a personal project. Please modify the Custom GPT URL and configuration for your own use.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**TL;DR**: You are free to use, modify, and distribute this code for any purpose, including commercial use. The software is provided "as is" without warranty of any kind.
 
 ## Support
 
