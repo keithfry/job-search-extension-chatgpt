@@ -39,7 +39,7 @@ async function rebuildContextMenus() {
     // Create root menu
     chrome.contextMenus.create({
       id: 'jobSearchRoot',
-      title: 'Send to Job Search GPT',
+      title: config.globalSettings.contextMenuTitle,
       contexts: ['selection']
     });
 
@@ -186,19 +186,33 @@ async function runAllActions(selectionText, config) {
     .filter(action => action.enabled)
     .sort((a, b) => a.order - b.order);
 
-  // Launch all actions in parallel, each in its own tab
-  const promises = enabledActions.map(async (action) => {
-    const prompt = `${action.prompt} ${selectionText}`;
+  console.log(`[Background] Run All: Found ${enabledActions.length} enabled actions:`, enabledActions.map(a => a.title));
 
+  // Step 1: Create all tabs immediately IN ORDER, then wait for them to load IN PARALLEL
+  const tabCreationPromises = enabledActions.map(async (action) => {
     try {
-      // Create a new tab for this action
       const tab = await chrome.tabs.create({
         url: config.globalSettings.customGptUrl,
         active: false
       });
       const tabId = await waitForTitleMatch(tab.id, config.globalSettings.gptTitleMatch, 20000);
+      console.log(`[Background] Created tab ${tabId} for ${action.title}`);
+      return { action, tabId };
+    } catch (e) {
+      console.warn(`[Background] Failed to create tab for ${action.title}:`, e);
+      return null;
+    }
+  });
 
-      console.log(`[Background] Launching ${action.title} in tab ${tabId}`);
+  const results = await Promise.all(tabCreationPromises);
+  const tabData = results.filter(r => r !== null);
+
+  // Step 2: Inject prompts into all tabs IN PARALLEL
+  const promises = tabData.map(async ({ action, tabId }) => {
+    const prompt = `${action.prompt} ${selectionText}`;
+
+    try {
+      console.log(`[Background] Injecting prompt for ${action.title} in tab ${tabId}`);
 
       const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -218,12 +232,12 @@ async function runAllActions(selectionText, config) {
         }), 1200);
       }
     } catch (e) {
-      console.warn(`[Background] Failed to run ${action.title}:`, e);
+      console.warn(`[Background] Failed to inject prompt for ${action.title}:`, e);
     }
   });
 
   await Promise.all(promises);
-  console.log('[Background] All actions launched in parallel');
+  console.log('[Background] All actions launched');
 }
 
 // ====== TAB/TITLE HELPERS ======

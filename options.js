@@ -2,8 +2,7 @@ import { getConfig, saveConfig, validateConfig } from './config.js';
 
 // ====== DOM ELEMENTS ======
 const customGptUrlInput = document.getElementById('customGptUrl');
-const gptTitleMatchInput = document.getElementById('gptTitleMatch');
-const clearContextCheckbox = document.getElementById('clearContext');
+const contextMenuTitleInput = document.getElementById('contextMenuTitle');
 const autoSubmitCheckbox = document.getElementById('autoSubmit');
 const runAllEnabledCheckbox = document.getElementById('runAllEnabled');
 const runAllShortcutInput = document.getElementById('runAllShortcut');
@@ -31,8 +30,7 @@ async function loadAndRender() {
 
     // Populate global settings
     customGptUrlInput.value = currentConfig.globalSettings.customGptUrl;
-    gptTitleMatchInput.value = currentConfig.globalSettings.gptTitleMatch;
-    clearContextCheckbox.checked = currentConfig.globalSettings.clearContext;
+    contextMenuTitleInput.value = currentConfig.globalSettings.contextMenuTitle;
     autoSubmitCheckbox.checked = currentConfig.globalSettings.autoSubmit;
     runAllEnabledCheckbox.checked = currentConfig.globalSettings.runAllEnabled !== false; // default true
     runAllShortcutInput.value = currentConfig.globalSettings.runAllShortcut || '';
@@ -323,8 +321,9 @@ async function handleSave() {
     const newConfig = {
       globalSettings: {
         customGptUrl: customGptUrlInput.value.trim(),
-        gptTitleMatch: gptTitleMatchInput.value.trim(),
-        clearContext: clearContextCheckbox.checked,
+        gptTitleMatch: currentConfig.globalSettings.gptTitleMatch, // Preserved (not in UI)
+        contextMenuTitle: contextMenuTitleInput.value.trim(),
+        clearContext: currentConfig.globalSettings.clearContext, // Preserved (not in UI)
         autoSubmit: autoSubmitCheckbox.checked,
         runAllEnabled: runAllEnabledCheckbox.checked,
         runAllShortcut: runAllShortcutInput.value.trim()

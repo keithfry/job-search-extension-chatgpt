@@ -3,6 +3,7 @@ const DEFAULT_CONFIG = {
   globalSettings: {
     customGptUrl: "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
     gptTitleMatch: "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
+    contextMenuTitle: "Send to Job Search GPT",
     clearContext: true,
     autoSubmit: true,
     runAllEnabled: true,
@@ -54,6 +55,9 @@ function validateConfig(config) {
     }
     if (!config.globalSettings.gptTitleMatch?.trim()) {
       errors.push('GPT Title Match is required');
+    }
+    if (!config.globalSettings.contextMenuTitle?.trim()) {
+      errors.push('Context Menu Title is required');
     }
     if (typeof config.globalSettings.clearContext !== 'boolean') {
       errors.push('clearContext must be true or false');
