@@ -1,19 +1,22 @@
 # Job Search GPT Actions - Chrome Extension
 
-A Chrome extension that streamlines my job search workflow by quickly sending selected text to my custom Job Search ChatGPT assistant for analysis and cover letter assistance.
+A Chrome extension that streamlines job search workflows by sending selected text to a custom Job Search ChatGPT assistant for analysis and cover letter assistance. **Now with fully configurable actions, shortcuts, and settings!**
 
 ## Features
 
+- **Fully Configurable**: Configure all actions, shortcuts, and settings via options page
+- **Custom Actions**: Add, edit, remove, and reorder actions without code changes
+- **Custom Shortcuts**: Assign any keyboard shortcut to any action
+- **Import/Export**: Backup and share configurations via JSON
 - **Context Menu Integration**: Right-click selected text to send it to your custom GPT
-- **Keyboard Shortcuts**: Fast access with customizable keyboard shortcuts
 - **Smart Tab Management**: Automatically opens or focuses your GPT tab
 - **Auto-Submit**: Optionally submit prompts automatically for hands-free operation
-- **Multiple Actions**: Four specialized actions for different job search needs
 - **Parallel Processing**: Run all actions simultaneously in separate tabs
-- **Retry Logic**: Robust injection with automatic retry on failure
-- **Fresh Context**: Option to clear previous conversation context
+- **Robust Injection**: Automatic retry on failure with fresh context option
 
-## Actions
+## Default Actions
+
+The extension comes with three pre-configured actions (fully customizable via options page):
 
 ### 1. Fit Match (Alt+Shift+J) — *Mac: Option+Shift+J*
 Analyzes how well your background fits a job description.
@@ -24,8 +27,10 @@ Creates a concise summary of a job posting.
 ### 3. Critical Fit Match (Alt+Shift+L) — *Mac: Option+Shift+L*
 Provides a critical, thorough analysis of job fit.
 
-### 4. Run All Actions (Alt+Shift+H) — *Mac: Option+Shift+H*
-Runs all three actions (Job Summary, Fit Match, and Critical Fit Match) simultaneously in separate browser tabs for parallel processing. This allows you to quickly get all three perspectives on a job posting at once.
+### 4. Run All Actions (customizable shortcut)
+Runs all enabled actions simultaneously in separate browser tabs for parallel processing.
+
+**Note:** All actions, their prompts, and shortcuts are fully configurable via the extension's options page.
 
 ## Installation
 
@@ -39,18 +44,16 @@ Runs all three actions (Job Summary, Fit Match, and Critical Fit Match) simultan
 
 ### Configuration
 
-Before using, you must update the Custom GPT URL in `background.js`:
+**v2.0.0 and later:** All configuration is done through the options page (chrome://extensions → Details → Extension options).
 
-```javascript
-const CUSTOM_GPT_URL = "https://chatgpt.com/g/YOUR-GPT-ID";
-const GPT_TITLE_MATCH = "ChatGPT - Your GPT Name";
-```
+**Configuration Options:**
+- **Custom GPT URL**: Your custom GPT URL (e.g., https://chatgpt.com/g/g-...)
+- **GPT Title Match**: Browser tab title to match (for finding existing tabs)
+- **Clear Context**: Set to enable/disable starting fresh conversation each time
+- **Auto Submit**: Set to enable/disable automatically submitting prompts
+- **Actions**: Add, edit, remove, and reorder actions with custom prompts and shortcuts
 
-**Configuration Options** (background.js:1-13):
-- `CUSTOM_GPT_URL`: Your custom GPT URL
-- `GPT_TITLE_MATCH`: Browser tab title to match (for finding existing tabs)
-- `CLEAR_CONTEXT`: Set to `true` to start fresh conversation each time
-- `AUTO_SUBMIT`: Set to `true` to automatically submit prompts
+**For v1.6.0 and earlier users:** Your existing configuration will be automatically migrated to the new options page on first load.
 
 ## Custom GPT Configuration
 
@@ -96,9 +99,39 @@ After creating your GPT:
    - **Alt+Shift+H**: Run All Actions — *Mac: Option+Shift+H*
 
 ### Customizing Shortcuts
+
+**v2.0.0 and later:**
+1. Go to Extension options (chrome://extensions → Details → Extension options)
+2. Click the keyboard icon (⌨️) next to any action
+3. Press your desired key combination
+4. Click "Save"
+
+**v1.6.0 and earlier:**
 1. Go to `chrome://extensions/shortcuts`
 2. Find "Job Search GPT Actions"
 3. Click the edit icon to set your preferred shortcuts
+
+## Import/Export Configuration
+
+### Exporting Your Configuration
+
+1. Open Extension options
+2. Click "Export JSON"
+3. Save the downloaded `job-search-gpt-config.json` file
+
+Use this to:
+- Backup your configuration
+- Share configurations with others
+- Sync settings across multiple computers
+
+### Importing a Configuration
+
+1. Open Extension options
+2. Click "Import JSON"
+3. Select a previously exported configuration file
+4. Confirm the import
+
+**Warning:** Importing will replace your current configuration. Export your current settings first if you want to preserve them.
 
 ## Technical Details
 
@@ -214,24 +247,34 @@ Enable verbose logging in Chrome DevTools:
 
 - Only works with ChatGPT (chatgpt.com and chat.openai.com)
 - Requires ChatGPT Plus subscription for custom GPT access
-- Hardcoded GPT URL (not configurable via UI)
+- ~~Hardcoded GPT URL~~ **Now configurable via options page!**
 - No icon or visual branding
 - Fixed retry timing may not work on very slow connections
 
 ## Future Enhancements
 
 Potential improvements for future versions:
-- [ ] Options page for configuration (no code changes needed)
-- [ ] Support for multiple custom GPTs
-- [ ] Extension icon and branding
-- [ ] Configurable retry timing
-- [ ] Status notifications instead of alerts
-- [ ] Export/import configuration
-- [ ] Support for Claude/other AI assistants
+- ~~Options page for configuration~~ **✅ Completed in v2.0.0**
+- ~~Support for multiple custom actions~~ **✅ Completed in v2.0.0**
+- ~~Configurable keyboard shortcuts~~ **✅ Completed in v2.0.0**
+- Extension icon and branding
+- Configurable retry timing
+- Status notifications instead of alerts
+- Support for Claude/other AI assistants
+- Action templates marketplace
 
 ## Version History
 
-### 1.6.0 (Current)
+### 2.0.0 (Current) - **Major Update: Fully Configurable**
+- **Options Page**: Full configuration UI for all settings
+- **Custom Actions**: Add, edit, remove, and reorder actions
+- **Custom Shortcuts**: Assign any keyboard shortcut to any action
+- **Import/Export**: Backup and share configurations via JSON
+- **Dynamic Menus**: Context menus rebuild automatically from config
+- **Migration**: Automatic migration from v1.6.0 hardcoded config
+- **Breaking Change**: Config now stored in chrome.storage.sync (not code)
+
+### 1.6.0
 - **Run All Actions**: Execute all three actions in parallel tabs
 - Keyboard shortcut (Alt+Shift+H) for Run All
 - Context menu option for Run All
@@ -249,6 +292,24 @@ Potential improvements for future versions:
 - Auto-submit functionality
 - Retry logic
 - Tab management
+
+## Upgrading from v1.6.0 to v2.0.0
+
+### Automatic Migration
+
+When you first load v2.0.0, your existing hardcoded configuration will be automatically migrated to the new options page. No action required!
+
+**What's Migrated:**
+- All three default actions (Fit Match, Job Summary, Critical Fit Match)
+- Default keyboard shortcuts (Alt+Shift+J, K, L)
+- GPT URL and title match
+- Auto-submit and clear context settings
+
+### Important Notes
+
+- **Downgrading:** You cannot downgrade from v2.0.0 to v1.6.0 without losing your configuration. Export your config first if you need to downgrade.
+- **Customizations:** If you modified `background.js` directly in v1.6.0, those customizations will be lost. Use the options page in v2.0.0 instead.
+- **Backup:** Consider exporting your configuration after migration to keep a backup.
 
 ## License
 
