@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Actions (v2.0 Dev)",
+  "name": "ChatGPT Custom Prompts",
   "version": "2.0.3",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [

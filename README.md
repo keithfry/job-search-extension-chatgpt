@@ -1,6 +1,6 @@
-# ChatGPT Actions - Chrome Extension
+# ChatGPT Custom Prompts - Chrome Extension
 
-A Chrome extension that allows you to send selected text to your custom ChatGPT assistant with configurable actions, shortcuts, and settings.
+A Chrome extension that allows you to send selected text to your custom ChatGPT assistant with configurable custom prompts, shortcuts, and settings.
 
 ## Features
 
@@ -81,7 +81,7 @@ After creating your GPT:
 
 **v1.6.0 and earlier:**
 1. Go to `chrome://extensions/shortcuts`
-2. Find "ChatGPT Actions"
+2. Find "ChatGPT Custom Prompts"
 3. Click the edit icon to set your preferred shortcuts
 
 ## Import/Export Configuration
