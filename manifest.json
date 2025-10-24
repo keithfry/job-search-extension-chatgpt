@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "ChatGPT Custom Prompts",
   "version": "2.0.3",
-  "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
+  "description": "Send selected text to ChatGPT with custom prompts. Configure actions, shortcuts, and automate your AI workflow.",
+  "homepage_url": "https://github.com/keithfry/chatgpt-query-extension",
   "permissions": [
     "contextMenus",
     "tabs",
