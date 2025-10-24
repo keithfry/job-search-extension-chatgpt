@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Actions (v2.0 Dev)",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Configurable actions to send selections to your custom ChatGPT assistant.",
   "permissions": [
     "contextMenus",
@@ -25,5 +25,11 @@
       "run_at": "document_start"
     }
   ],
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "24": "icons/icon-24.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
 }
