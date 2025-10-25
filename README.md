@@ -260,24 +260,11 @@ Potential improvements for future versions:
 - **Migration**: Automatic migration from v1.6.0 hardcoded config
 - **Breaking Change**: Config now stored in chrome.storage.sync (not code)
 
-### 1.6.0
-- **Run All Actions**: Execute all three actions in parallel tabs
-- Keyboard shortcut (Alt+Shift+H) for Run All
-- Context menu option for Run All
-- Parallel tab management for simultaneous processing
 
-### 1.5.0
-- Keyboard shortcut support for all actions
-- Enhanced deduplication logic
-- Shadow DOM traversal support
-- Improved visibility checking
-- Better error handling
 
-### Previous Versions
-- Context menu integration
-- Auto-submit functionality
-- Retry logic
-- Tab management
+## Privacy Policy
+
+This extension respects your privacy and does not collect any personal data. For complete details, see our [Privacy Policy](PRIVACY.md).
 
 ## License
 
