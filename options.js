@@ -554,13 +554,14 @@ async function handleImportFile(e) {
       return;
     }
 
-    // Save imported config
+    // Save imported config (getConfig will auto-migrate if needed)
     await saveConfig(importedConfig);
     currentConfig = importedConfig;
 
     // Reload UI
     await loadAndRender();
 
+    // Migration happens silently in the background
     showSuccess('Configuration imported successfully!');
     importFileInput.value = ''; // Clear file input
   } catch (e) {

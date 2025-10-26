@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Custom Prompts",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Send selected text to your custom ChatGPT with custom action prompts. Configure actions, shortcuts, and automate your AI workflow.",
   "homepage_url": "https://github.com/frybynite/chatgpt-query-extension",
   "permissions": [

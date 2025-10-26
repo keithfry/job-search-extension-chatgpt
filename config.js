@@ -1,3 +1,6 @@
+// ====== CONFIG VERSION ======
+const CURRENT_CONFIG_VERSION = 2;
+
 // ====== LOAD DEFAULT CONFIG ======
 let DEFAULT_CONFIG = null;
 
@@ -12,6 +15,7 @@ async function loadDefaultConfig() {
     console.error('[Config] Failed to load default config:', e);
     // Fallback to hardcoded minimal config
     return {
+      version: CURRENT_CONFIG_VERSION,
       globalSettings: {
         customGptUrl: "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
         gptTitleMatch: "ChatGPT",
@@ -26,6 +30,35 @@ async function loadDefaultConfig() {
   }
 }
 
+// ====== CONFIG MIGRATION ======
+function migrateConfigVersion(config) {
+  // If no version, assume version 1 (old format before versioning)
+  const configVersion = config.version || 1;
+
+  // Already at current version, no migration needed
+  if (configVersion === CURRENT_CONFIG_VERSION) {
+    return config;
+  }
+
+  console.log(`[Config] Migrating from v${configVersion} to v${CURRENT_CONFIG_VERSION}`);
+
+  let migratedConfig = { ...config };
+
+  // Migration from v1 to v2
+  if (configVersion < 2) {
+    migratedConfig.version = 2;
+    // v1 had no version field, v2 adds it at root level
+    // Structure is otherwise compatible
+  }
+
+  // Future migrations will go here:
+  // if (configVersion < 3) { ... }
+  // if (configVersion < 4) { ... }
+
+  console.log(`[Config] Migration complete to v${CURRENT_CONFIG_VERSION}`);
+  return migratedConfig;
+}
+
 // ====== VALIDATION ======
 function validateConfig(config) {
   const errors = [];
@@ -34,6 +67,10 @@ function validateConfig(config) {
   if (!config || typeof config !== 'object') {
     return ['Configuration must be an object'];
   }
+
+  // Log version (warn if missing, but don't fail validation)
+  const configVersion = config.version || 1;
+  console.log(`[Config] Validating config v${configVersion}`);
 
   // Global settings validation
   if (!config.globalSettings) {
@@ -116,14 +153,24 @@ async function getConfig() {
       return JSON.parse(JSON.stringify(defaultConfig));
     }
 
-    // Validate loaded config
-    const errors = validateConfig(config);
+    // Migrate config if needed
+    const originalVersion = config.version || 1;
+    const migratedConfig = migrateConfigVersion(config);
+
+    // If migration happened, save the migrated config
+    if (originalVersion !== CURRENT_CONFIG_VERSION) {
+      console.log('[Config] Saving migrated config');
+      await chrome.storage.sync.set({ config: migratedConfig });
+    }
+
+    // Validate migrated config
+    const errors = validateConfig(migratedConfig);
     if (errors.length > 0) {
       console.error('[Config] Validation failed, using defaults:', errors);
       return JSON.parse(JSON.stringify(defaultConfig));
     }
 
-    return config;
+    return migratedConfig;
   } catch (e) {
     console.error('[Config] Error loading config, using defaults:', e);
     const defaultConfig = await loadDefaultConfig();
