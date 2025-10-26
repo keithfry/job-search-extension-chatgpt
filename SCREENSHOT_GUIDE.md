@@ -4,6 +4,10 @@ Chrome Web Store requires 1-5 screenshots, each **1280×800 px** or **640×400 p
 
 **Recommended:** 1280×800 for better quality on high-resolution displays.
 
+## Directory Location
+
+Save all screenshots to the **`screenshots/`** directory in the project root. This keeps Chrome Web Store assets separate from extension code and makes it clear these are for marketing/store listing purposes.
+
 ## Required Screenshots
 
 ### 1. Extension Options Page (REQUIRED)

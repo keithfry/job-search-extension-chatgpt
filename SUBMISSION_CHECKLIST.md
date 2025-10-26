@@ -8,7 +8,7 @@ Use this checklist to ensure you're ready to submit ChatGPT Custom Prompts to th
 - [x] Privacy policy created (`PRIVACY.md`)
 - [x] Permissions justification documented (`PERMISSIONS_JUSTIFICATION.md`)
 - [x] Store listing content drafted (`STORE_LISTING.md`)
-- [ ] Privacy policy hosted publicly (GitHub or website)
+- [x] Privacy policy hosted publicly (GitHub or website)
 
 ### Extension Files ✅
 - [x] Manifest.json updated with better description
@@ -17,18 +17,18 @@ Use this checklist to ensure you're ready to submit ChatGPT Custom Prompts to th
 - [x] Build script created (`build.sh`)
 
 ### Assets to Create 📸
-- [ ] Take 4-5 screenshots (see `SCREENSHOT_GUIDE.md`)
-  - [ ] Extension options page
-  - [ ] Context menu in action
-  - [ ] Actions management
-  - [ ] ChatGPT integration
-  - [ ] Keyboard shortcuts (optional)
-- [ ] Resize all screenshots to 1280×800 px
-- [ ] Create small tile promotional image (440×280 px) - optional but recommended
-- [ ] Create marquee promotional image (1400×560 px) - optional
+- [x] Take 4-5 screenshots (see `SCREENSHOT_GUIDE.md`)
+  - [x] Extension options page
+  - [x] Context menu in action
+  - [x] Actions management
+  - [ ] ChatGPT integration (optional) - skipped
+  - [ ] Keyboard shortcuts (optional) - skipped
+- [x] Resize all screenshots to 1280×800 px
+- [ ] Create small tile promotional image (440×280 px) - optional but recommended - skipped
+- [ ] Create marquee promotional image (1400×560 px) - optional - skipped
 
 ### Testing 🧪
-- [ ] Build extension package: `./build.sh`
+- [x] Build extension package: `./build.sh`
 - [ ] Load ZIP as unpacked extension in Chrome
 - [ ] Test all features:
   - [ ] Custom actions work
@@ -43,11 +43,11 @@ Use this checklist to ensure you're ready to submit ChatGPT Custom Prompts to th
 ## Phase 2: Chrome Web Store Account Setup
 
 ### Developer Account 💳
-- [ ] Go to [chrome.google.com/webstore/devconsole](https://chrome.google.com/webstore/devconsole)
-- [ ] Sign in with Google account
-- [ ] Pay $5 one-time developer registration fee
-- [ ] Complete account setup
-- [ ] Add support email address
+- [x] Go to [chrome.google.com/webstore/devconsole](https://chrome.google.com/webstore/devconsole)
+- [x] Sign in with Google account
+- [x] Pay $5 one-time developer registration fee
+- [x] Complete account setup
+- [x] Add support email address
 
 ### Important Notes:
 - Registration fee is one-time, not recurring
