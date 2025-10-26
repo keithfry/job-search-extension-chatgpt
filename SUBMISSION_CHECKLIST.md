@@ -77,9 +77,9 @@ Use this checklist to ensure you're ready to submit ChatGPT Custom Prompts to th
 - [ ] Upload marquee (1400×560) - optional
 
 ### Store Listing - Links & Contact 🔗
-- [ ] **Homepage URL:** https://github.com/keithfry/chatgpt-query-extension
-- [ ] **Support URL:** https://github.com/keithfry/chatgpt-query-extension/issues
-- [ ] **Privacy Policy URL:** https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md
+- [ ] **Homepage URL:** https://github.com/frybynite/chatgpt-query-extension
+- [ ] **Support URL:** https://github.com/frybynite/chatgpt-query-extension/issues
+- [ ] **Privacy Policy URL:** https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md
 - [ ] **Support email:** [Your email]
 
 ### Distribution Settings 🌍
@@ -116,7 +116,7 @@ The content script:
 - Only sends a message to the background script when a shortcut is pressed
 - Is minimal (~100 lines) and fully auditable in our open source repository
 
-Full justification: https://github.com/keithfry/chatgpt-query-extension/blob/main/PERMISSIONS_JUSTIFICATION.md
+Full justification: https://github.com/frybynite/chatgpt-query-extension/blob/main/PERMISSIONS_JUSTIFICATION.md
 ```
 
 ## Phase 5: Review & Submit
@@ -194,7 +194,7 @@ Full justification: https://github.com/keithfry/chatgpt-query-extension/blob/mai
 ## Important Reminders ⚠️
 
 1. **Privacy Policy Must Be Publicly Accessible**
-   - GitHub link works great: https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md
+   - GitHub link works great: https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md
    - Make sure repo is public (not private)
 
 2. **Response Time Matters**
@@ -239,10 +239,10 @@ If you're experiencing issues:
 1. Check the extension options page for configuration
 2. Ensure your Custom GPT URL is correct
 3. Try reloading the extension (chrome://extensions → Reload)
-4. Review the README: https://github.com/keithfry/chatgpt-query-extension
+4. Review the README: https://github.com/frybynite/chatgpt-query-extension
 
 Feel free to open an issue on GitHub if problems persist:
-https://github.com/keithfry/chatgpt-query-extension/issues
+https://github.com/frybynite/chatgpt-query-extension/issues
 
 Thanks,
 [Your name]
@@ -256,9 +256,9 @@ Thanks,
 
 **Output File:** `chatgpt-custom-prompts-v2.0.3.zip`
 
-**Privacy Policy:** https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md
+**Privacy Policy:** https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md
 
-**Support:** https://github.com/keithfry/chatgpt-query-extension/issues
+**Support:** https://github.com/frybynite/chatgpt-query-extension/issues
 
 ---
 

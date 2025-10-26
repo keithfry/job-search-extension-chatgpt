@@ -3,7 +3,7 @@
   "name": "ChatGPT Custom Prompts",
   "version": "2.0.3",
   "description": "Send selected text to your custom ChatGPT with custom action prompts. Configure actions, shortcuts, and automate your AI workflow.",
-  "homepage_url": "https://github.com/keithfry/chatgpt-query-extension",
+  "homepage_url": "https://github.com/frybynite/chatgpt-query-extension",
   "permissions": [
     "contextMenus",
     "tabs",

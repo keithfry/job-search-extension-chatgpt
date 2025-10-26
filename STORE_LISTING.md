@@ -109,9 +109,9 @@ Export your entire configuration to a JSON file. Perfect for:
 
 **🔗 LINKS**
 
-• GitHub: https://github.com/keithfry/chatgpt-query-extension
-• Privacy Policy: https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md
-• Report Issues: https://github.com/keithfry/chatgpt-query-extension/issues
+• GitHub: https://github.com/frybynite/chatgpt-query-extension
+• Privacy Policy: https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md
+• Report Issues: https://github.com/frybynite/chatgpt-query-extension/issues
 
 **💬 SUPPORT**
 
@@ -128,9 +128,9 @@ Open an issue on GitHub or check the documentation in the repository.
 
 **Support Email:** [Your email address]
 
-**Privacy Policy URL:** https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md
+**Privacy Policy URL:** https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md
 
-**Homepage URL:** https://github.com/keithfry/chatgpt-query-extension
+**Homepage URL:** https://github.com/frybynite/chatgpt-query-extension
 
 ## Justification for Permissions
 
@@ -147,7 +147,7 @@ The content script:
 Users expect keyboard shortcuts to work everywhere, which is why we need this broad permission. The extension does not use this permission for any data collection or tracking.
 
 **Full permissions justification available at:**
-https://github.com/keithfry/chatgpt-query-extension/blob/main/PERMISSIONS_JUSTIFICATION.md
+https://github.com/frybynite/chatgpt-query-extension/blob/main/PERMISSIONS_JUSTIFICATION.md
 
 ## Screenshot Descriptions
 

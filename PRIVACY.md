@@ -83,12 +83,12 @@ We may update this privacy policy from time to time. Any changes will be posted 
 ## Open Source
 
 This extension is open source and licensed under the MIT License. You can review the complete source code at:
-https://github.com/keithfry/chatgpt-query-extension
+https://github.com/frybynite/chatgpt-query-extension
 
 ## Contact
 
 For questions or concerns about this privacy policy, please:
-- Open an issue on GitHub: https://github.com/keithfry/chatgpt-query-extension/issues
+- Open an issue on GitHub: https://github.com/frybynite/chatgpt-query-extension/issues
 - Review the source code to understand exactly how the extension works
 
 ## Consent

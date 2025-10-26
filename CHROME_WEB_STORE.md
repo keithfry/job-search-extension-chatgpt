@@ -64,15 +64,15 @@ chmod +x build.sh
    - Upload ZIP package
    - Upload screenshots
    - Copy store listing from `STORE_LISTING.md`
-   - Add privacy policy URL: `https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md`
+   - Add privacy policy URL: `https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md`
    - Submit for review
 
 ## 🔗 Important Links
 
 - **Chrome Web Store Developer Console:** https://chrome.google.com/webstore/devconsole
-- **Privacy Policy URL:** https://github.com/keithfry/chatgpt-query-extension/blob/main/PRIVACY.md
-- **Support/Homepage:** https://github.com/keithfry/chatgpt-query-extension
-- **Issues:** https://github.com/keithfry/chatgpt-query-extension/issues
+- **Privacy Policy URL:** https://github.com/frybynite/chatgpt-query-extension/blob/main/PRIVACY.md
+- **Support/Homepage:** https://github.com/frybynite/chatgpt-query-extension
+- **Issues:** https://github.com/frybynite/chatgpt-query-extension/issues
 
 ## ⏱️ Timeline Estimate
 

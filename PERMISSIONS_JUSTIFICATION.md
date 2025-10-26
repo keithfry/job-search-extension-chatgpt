@@ -100,7 +100,7 @@ Users expect keyboard shortcuts to work everywhere - whether they're on job site
 - **No data collection:** Extension does not collect, track, or transmit user data
 - **No network requests:** Extension does not make any external API calls
 - **Local storage only:** All data stays in Chrome's sync storage
-- **Open source:** Complete source code available at https://github.com/keithfry/chatgpt-query-extension
+- **Open source:** Complete source code available at https://github.com/frybynite/chatgpt-query-extension
 - **MIT Licensed:** Users can audit and modify the code
 
 ## Minimal Permissions Principle

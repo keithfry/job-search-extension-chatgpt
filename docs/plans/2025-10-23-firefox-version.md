@@ -165,7 +165,7 @@ Firefox-specific manifest with required differences:
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "chatgpt-actions@keithfry.com",
+      "id": "chatgpt-actions@frybynite.com",
       "strict_min_version": "109.0"
     }
   },
@@ -425,10 +425,10 @@ async function loadDefaultConfig() {
 ```json
 {
   "description": "Configurable actions to send selections to your custom ChatGPT assistant. Works on Chrome and Firefox.",
-  "homepage_url": "https://github.com/keithfry/job-search-extension-chatgpt",
+  "homepage_url": "https://github.com/frybynite/job-search-extension-chatgpt",
   "developer": {
     "name": "Keith Fry",
-    "url": "https://github.com/keithfry"
+    "url": "https://github.com/frybynite"
   }
 }
 ```
