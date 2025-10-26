@@ -1,45 +1,12 @@
 {
-  "actions": [
-    {
-      "enabled": true,
-      "id": "jobSummary",
-      "order": 1,
-      "prompt": "Create a Job Summary in 5 sentences for following position:",
-      "shortcut": "Alt+Shift+J",
-      "title": "Job Summary"
-    },
-    {
-      "enabled": true,
-      "id": "fitMatch",
-      "order": 2,
-      "prompt": "Create a Fit Match, do not create a cover letter:",
-      "shortcut": "Alt+Shift+K",
-      "title": "Fit Match"
-    },
-    {
-      "enabled": true,
-      "id": "criticalFitMatch",
-      "order": 3,
-      "prompt": "think long, be critical, and provide a Fit Match with no cover letter:",
-      "shortcut": "Alt+Shift+L",
-      "title": "Critical Fit Match"
-    },
-    {
-      "enabled": true,
-      "id": "action_1761261693341_r9aa3",
-      "order": 4,
-      "prompt": "if the job summary contains the title of a company , create a brief 5 sentence of the company:",
-      "shortcut": "",
-      "title": "Company Summary"
-    }
-  ],
+  "actions": [],
   "globalSettings": {
     "autoSubmit": true,
     "clearContext": true,
     "contextMenuTitle": "Send to ChatGPT",
-    "customGptUrl": "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
-    "gptTitleMatch": "ChatGPT - Keith Fry's Job Match and Cover Letter Coach",
-    "runAllEnabled": true,
-    "runAllShortcut": "Alt+Shift+H"
+    "customGptUrl": "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
+    "gptTitleMatch": "ChatGPT",
+    "runAllEnabled": false,
+    "runAllShortcut": ""
   }
 }

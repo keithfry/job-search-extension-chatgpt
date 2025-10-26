@@ -16,7 +16,9 @@ const exportButton = document.getElementById('export-config');
 const importButton = document.getElementById('import-config');
 const importFileInput = document.getElementById('import-file-input');
 const errorBanner = document.getElementById('error-banner');
+const warningBanner = document.getElementById('warning-banner');
 const successBanner = document.getElementById('success-banner');
+const reloadReminder = document.getElementById('reload-reminder');
 const actionTemplate = document.getElementById('action-template');
 
 // ====== STATE ======
@@ -41,7 +43,9 @@ async function loadAndRender() {
     // Render actions
     renderActions();
 
+    // Hide banners and reload reminder
     hideAllBanners();
+    reloadReminder.classList.add('hidden');
   } catch (e) {
     showError('Failed to load configuration: ' + e.message);
   }
@@ -106,6 +110,17 @@ function attachActionEventListeners(actionItem) {
   const shortcutInput = actionItem.querySelector('.action-shortcut');
   captureBtn.addEventListener('click', () => captureShortcut(shortcutInput));
 
+  // Delete key to clear shortcut
+  shortcutInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      shortcutInput.value = '';
+      // Show reload reminder since shortcut was changed
+      reloadReminder.classList.remove('hidden');
+      hideAllBanners();
+    }
+  });
+
   // Remove error styling when user types in required fields
   const titleInput = actionItem.querySelector('.action-title');
   const promptInput = actionItem.querySelector('.action-prompt');
@@ -155,12 +170,6 @@ function deleteAction(actionItem) {
   const actionTitle = actionItem.querySelector('.action-title').value || 'this action';
 
   if (confirm(`Delete "${actionTitle}"?`)) {
-    // Check if this is the last action
-    if (actionsListContainer.children.length <= 1) {
-      showError('Cannot delete the last action. At least one action is required.');
-      return;
-    }
-
     actionItem.remove();
     updateActionOrders();
   }
@@ -272,6 +281,9 @@ function captureShortcut(shortcutInput) {
     const shortcutString = parts.join('+');
     shortcutInput.value = shortcutString;
 
+    // Show reload reminder since shortcut was changed
+    reloadReminder.classList.remove('hidden');
+
     // Check for duplicates
     checkShortcutDuplicate(shortcutInput, shortcutString);
 
@@ -309,13 +321,27 @@ function checkShortcutDuplicate(currentInput, shortcut) {
 function showError(message) {
   errorBanner.textContent = message;
   errorBanner.classList.remove('hidden');
+  warningBanner.classList.add('hidden');
   successBanner.classList.add('hidden');
+}
+
+function showWarning(message) {
+  warningBanner.textContent = message;
+  warningBanner.classList.remove('hidden');
+  errorBanner.classList.add('hidden');
+  successBanner.classList.add('hidden');
+
+  // Auto-hide after 5 seconds (longer than success)
+  setTimeout(() => {
+    warningBanner.classList.add('hidden');
+  }, 5000);
 }
 
 function showSuccess(message) {
   successBanner.textContent = message;
   successBanner.classList.remove('hidden');
   errorBanner.classList.add('hidden');
+  warningBanner.classList.add('hidden');
 
   // Auto-hide after 3 seconds
   setTimeout(() => {
@@ -325,6 +351,7 @@ function showSuccess(message) {
 
 function hideAllBanners() {
   errorBanner.classList.add('hidden');
+  warningBanner.classList.add('hidden');
   successBanner.classList.add('hidden');
 }
 
@@ -393,6 +420,12 @@ async function handleSave() {
       return;
     }
 
+    // Check for placeholder URL
+    if (newConfig.globalSettings.customGptUrl.includes('<<YOUR CUSTOM GPT URL>>')) {
+      showError('Please replace "<<YOUR CUSTOM GPT URL>>" with your actual Custom GPT URL');
+      return;
+    }
+
     // Validate
     const errors = validateConfig(newConfig);
     if (errors.length > 0) {
@@ -404,7 +437,24 @@ async function handleSave() {
     await saveConfig(newConfig);
     currentConfig = newConfig;
 
-    showSuccess('Configuration saved successfully!');
+    // Check if there are no actions - show warning but config is saved
+    if (newConfig.actions.length === 0) {
+      showWarning('Configuration saved successfully! However, you have no actions configured. Add at least one action to use the extension.');
+    } else {
+      showSuccess('Configuration saved successfully!');
+    }
+
+    // Fade out reload reminder if visible
+    if (!reloadReminder.classList.contains('hidden')) {
+      setTimeout(() => {
+        reloadReminder.classList.add('fading-out');
+        // After fade animation completes, add hidden class
+        setTimeout(() => {
+          reloadReminder.classList.add('hidden');
+          reloadReminder.classList.remove('fading-out');
+        }, 500); // Match CSS transition duration
+      }, 3000); // Wait 3 seconds before starting fade
+    }
   } catch (e) {
     showError('Failed to save: ' + e.message);
   }
@@ -538,6 +588,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Attach Run All shortcut capture button
   runAllShortcutBtn.addEventListener('click', () => {
     captureShortcut(runAllShortcutInput);
+  });
+
+  // Delete key to clear Run All shortcut
+  runAllShortcutInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      runAllShortcutInput.value = '';
+      // Show reload reminder since shortcut was changed
+      reloadReminder.classList.remove('hidden');
+      hideAllBanners();
+    }
   });
 
   // Toggle Run All shortcut visibility when checkbox changes

@@ -13,13 +13,13 @@ async function loadDefaultConfig() {
     // Fallback to hardcoded minimal config
     return {
       globalSettings: {
-        customGptUrl: "https://chatgpt.com/g/g-PLACEHOLDER",
+        customGptUrl: "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
         gptTitleMatch: "ChatGPT",
         contextMenuTitle: "Send to ChatGPT",
         clearContext: true,
         autoSubmit: true,
-        runAllEnabled: true,
-        runAllShortcut: "Alt+Shift+H"
+        runAllEnabled: false,
+        runAllShortcut: ""
       },
       actions: []
     };
@@ -59,9 +59,8 @@ function validateConfig(config) {
   // Actions validation
   if (!Array.isArray(config.actions)) {
     errors.push('actions must be an array');
-  } else if (config.actions.length === 0) {
-    errors.push('At least one action is required');
-  } else {
+  } else if (config.actions.length > 0) {
+    // Only validate individual actions if there are any
     config.actions.forEach((action, index) => {
       if (!action.id || !/^[a-zA-Z0-9_-]+$/.test(action.id)) {
         errors.push(`Action ${index + 1}: Invalid ID format (alphanumeric, dash, underscore only)`);
