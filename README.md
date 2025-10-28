@@ -106,59 +106,6 @@ Use this to:
 
 **Warning:** Importing will replace your current configuration. Export your current settings first if you want to preserve them.
 
-## Technical Details
-
-### Architecture
-- **Manifest Version**: 3 (latest Chrome extension standard)
-- **Service Worker**: background.js handles all logic
-- **Content Script Injection**: Dynamic script injection for ChatGPT interaction
-- **Permissions**: Minimal required permissions for security
-
-### Permissions
-- `contextMenus`: For right-click menu integration
-- `tabs`: For tab management
-- `scripting`: For injecting content into ChatGPT pages
-- `activeTab`: For reading selected text
-
-### Host Permissions
-- `https://chatgpt.com/*`
-- `https://chat.openai.com/*`
-
-### How It Works
-
-1. **Selection Capture**: When triggered, captures selected text from current tab
-2. **Tab Management**:
-   - Single actions: Creates new GPT tab for each action
-   - Run All: Creates separate tabs for all enabled actions in parallel
-3. **Context Clearing**: Always starts with fresh context for clean analysis
-4. **Text Injection**: Uses robust DOM querying to find ChatGPT's input field
-   - Tries multiple selector strategies
-   - Handles shadow DOM traversal
-   - Validates element visibility
-5. **Auto-Submit**: Optionally clicks send button or triggers Enter key
-6. **Retry Logic**: If first attempt fails, retries after 1.2 seconds
-7. **Deduplication**: Prevents duplicate submissions using unique request IDs
-8. **Parallel Execution**: Run All launches all actions simultaneously in background tabs
-
-### Key Functions
-
-- `runAllActions()`: Launches all enabled actions in parallel tabs (order preserved)
-- `executeAction()`: Executes a single action with selected text
-- `handleShortcutExecution()`: Processes keyboard shortcut triggers
-- `rebuildContextMenus()`: Dynamically creates context menus from config
-- `tryInjectWithTiming()`: Main injection logic with retry
-- `pickEditor()`: Finds ChatGPT input field
-- `setValue()`: Inserts text using proper DOM APIs
-- `submit()`: Submits the prompt
-
-### Debounce & Race Prevention
-
-The extension implements request deduplication at the page level:
-- Each request gets a unique ID
-- Page-level state tracks the last request ID and timestamp
-- Duplicate requests within 10 seconds are automatically skipped
-- Run All creates separate request IDs for each parallel action
-
 ## Troubleshooting
 
 ### Extension doesn't insert text
@@ -181,36 +128,6 @@ The extension implements request deduplication at the page level:
 - ChatGPT may have changed their DOM structure
 - Check browser console for detailed error logs
 - Consider updating selector patterns in background.js:130-139
-
-## Development
-
-### Project Structure
-```
-chatgpt-query-extension/
-├── manifest.json          # Extension configuration (Manifest V3)
-├── background.js          # Service worker - main extension logic
-├── config.js              # Configuration module with defaults and validation
-├── options.html           # Options page UI
-├── options.css            # Options page styling
-├── options.js             # Options page logic
-├── shortcuts.js           # Content script for keyboard shortcuts
-└── README.md              # This file
-```
-
-### Building
-No build step required - this is a pure JavaScript extension.
-
-### Testing
-1. Load extension in Chrome
-2. Navigate to any webpage with text
-3. Select text and test each action
-4. Check console logs for debugging
-
-### Debugging
-Enable verbose logging in Chrome DevTools:
-1. Go to `chrome://extensions/`
-2. Click "service worker" under the extension
-3. View console logs for detailed execution trace
 
 ## Configuration Best Practices
 
@@ -278,6 +195,14 @@ For issues or questions:
 1. Check the Troubleshooting section above
 2. Review console logs for error details
 3. Verify configuration matches your setup
+
+## For Developers
+
+Looking for technical details, architecture information, or development instructions? See [DEVELOPER.md](DEVELOPER.md) for:
+- Technical architecture and how it works
+- Permissions and security details
+- Key functions and code structure
+- Development, testing, and debugging instructions
 
 ## Credits
 
