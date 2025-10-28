@@ -1,0 +1,46 @@
+{
+  "actions": [
+    {
+      "enabled": true,
+      "id": "action_1761449440624_44r4h",
+      "order": 1,
+      "prompt": "Create a 5 sentence of the position, focus on the key matches to my role and anything that stands out as a key miss:",
+      "shortcut": "Alt+Shift+J",
+      "title": "Job Summary"
+    },
+    {
+      "enabled": true,
+      "id": "action_1761661336339_vaemi",
+      "order": 2,
+      "prompt": "Do a very quick review a provide a fit match for the job position:",
+      "shortcut": "Alt+Shift+K",
+      "title": "Fit Match"
+    },
+    {
+      "enabled": true,
+      "id": "action_1761661367165_b2bz3",
+      "order": 3,
+      "prompt": "Think longer, be critical, and provide a more in-depth fit match for the job posting:",
+      "shortcut": "Alt+Shift+L",
+      "title": "Critical Match"
+    },
+    {
+      "enabled": true,
+      "id": "action_1761449396895_bkh8h",
+      "order": 4,
+      "prompt": "Create a summary of the company found in the text, keep it short to 5 sentences:",
+      "shortcut": "",
+      "title": "Company Summary"
+    }
+  ],
+  "globalSettings": {
+    "autoSubmit": true,
+    "clearContext": true,
+    "contextMenuTitle": "Job Search",
+    "customGptUrl": "https://chatgpt.com/g/g-68b0b1831c0c819186bcf8bc0ecef4fa-keith-fry-s-job-match-and-cover-letter-coach",
+    "gptTitleMatch": "ChatGPT",
+    "runAllEnabled": true,
+    "runAllShortcut": "Alt+Shift+H"
+  },
+  "version": 2
+}
