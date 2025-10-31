@@ -86,8 +86,11 @@
 
     <!-- Import/Export Section -->
     <section class="import-export-section">
-      <button id="export-config" class="btn-secondary">Export JSON</button>
-      <button id="import-config" class="btn-secondary">Import JSON</button>
+      <div class="import-export-buttons">
+        <button id="export-config" class="btn-secondary">Export Settings</button>
+        <button id="import-config" class="btn-secondary">Import Settings</button>
+      </div>
+      <small class="import-export-note">Settings are saved as .json files</small>
       <input type="file" id="import-file-input" accept=".json" style="display: none;" />
     </section>
 

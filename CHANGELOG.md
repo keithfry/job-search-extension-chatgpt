@@ -5,6 +5,17 @@ All notable changes to ChatGPT Custom Prompts extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2025-10-31
+
+### Changed
+- Import/Export button labels changed from "Import/Export JSON" to "Import/Export Settings"
+- Added explanatory note "Settings are saved as .json files" positioned to the right of buttons
+- Improved layout to better utilize horizontal space on desktop while maintaining mobile responsiveness
+
+### Improved
+- User-friendly terminology for non-technical users
+- Clearer understanding of what import/export functionality does
+
 ## [2.2.0] - 2025-10-31
 
 ### Changed

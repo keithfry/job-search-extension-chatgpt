@@ -375,10 +375,22 @@ h2 {
 /* ====== IMPORT/EXPORT SECTION ====== */
 .import-export-section {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
   padding: 16px;
   background: #f8f9fa;
   border-radius: 6px;
+}
+
+.import-export-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.import-export-note {
+  color: #5f6368;
+  font-size: 12px;
+  flex: 1;
 }
 
 /* ====== RELOAD REMINDER ====== */
@@ -436,5 +448,11 @@ h2 {
 
   .import-export-section {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .import-export-buttons {
+    flex-direction: column;
+    width: 100%;
   }
 }
