@@ -21,90 +21,128 @@
     <!-- Success banner (hidden by default) -->
     <div id="success-banner" class="success-banner hidden"></div>
 
-    <!-- Global Settings Section -->
-    <section class="settings-section">
-      <h2>Global Settings</h2>
-      <div class="form-group">
-        <label for="customGptUrl">Custom GPT URL</label>
-        <input
-          type="url"
-          id="customGptUrl"
-          placeholder="https://chatgpt.com/g/g-..."
-          required
-        />
-        <small>The URL of your custom ChatGPT assistant</small>
-      </div>
-
-      <div class="form-group">
-        <label for="contextMenuTitle">Context Menu Title</label>
-        <input
-          type="text"
-          id="contextMenuTitle"
-          placeholder="Send to ChatGPT"
-          required
-        />
-        <small>The title shown in the right-click context menu</small>
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="autoSubmit" />
-          <span>Auto Submit</span>
-        </label>
-        <small>Automatically submit prompts without manual send</small>
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="runAllEnabled" />
-          <span>Enable "Run All Actions"</span>
-        </label>
-        <small>Show "Run All" in context menu and enable keyboard shortcut</small>
-      </div>
-
-      <div class="form-group shortcut-group" id="runAllShortcutGroup">
-        <label for="runAllShortcut">Run All Actions Shortcut</label>
-        <div class="shortcut-capture">
-          <input type="text" id="runAllShortcut" placeholder="None" readonly />
-          <button type="button" class="btn-icon btn-capture" id="runAllShortcutBtn" title="Record shortcut">⌨️</button>
-        </div>
-        <small>Keyboard shortcut to run all enabled actions in parallel</small>
-      </div>
-    </section>
-
-    <!-- Actions Section -->
-    <section class="actions-section">
-      <div class="section-header">
-        <h2>Actions</h2>
-        <button id="add-action" class="btn-secondary">+ Add Action</button>
-      </div>
-
-      <div id="actions-list">
-        <!-- Actions will be dynamically inserted here -->
-      </div>
-    </section>
-
-    <!-- Import/Export Section -->
-    <section class="import-export-section">
+    <!-- Global Import/Export Section -->
+    <section class="global-actions-section">
       <div class="import-export-buttons">
-        <button id="export-config" class="btn-secondary">Export Settings</button>
+        <button id="export-config" class="btn-secondary">Export All Settings</button>
         <button id="import-config" class="btn-secondary">Import Settings</button>
       </div>
-      <small class="import-export-note">Settings are saved as .json files</small>
+      <small class="import-export-note">Exports/imports all menus and their actions</small>
       <input type="file" id="import-file-input" accept=".json" style="display: none;" />
     </section>
 
-    <!-- Reload Reminder Note -->
-    <div id="reload-reminder" class="reload-reminder hidden">
-      <strong>NOTE:</strong> You will need to reload any open window/tab for keyboard shortcut changes to take effect
-    </div>
+    <!-- Main Content: Sidebar + Detail Panel -->
+    <div class="main-content">
+      <!-- Left Sidebar: Menu List -->
+      <aside class="menu-sidebar">
+        <div class="menu-sidebar-header">
+          <h2>Menus</h2>
+        </div>
 
-    <!-- Save/Cancel Buttons -->
-    <footer class="footer">
-      <button id="save" class="btn-primary">Save</button>
-      <button id="cancel" class="btn-secondary">Cancel</button>
-    </footer>
+        <div id="menu-list" class="menu-list">
+          <!-- Menu items will be dynamically inserted here -->
+        </div>
+
+        <div class="menu-sidebar-footer">
+          <button id="add-menu" class="btn-add-menu">+ Add Menu</button>
+          <div id="menu-count" class="menu-count">0/10 menus</div>
+        </div>
+      </aside>
+
+      <!-- Right Panel: Selected Menu Details -->
+      <main class="menu-detail-panel">
+        <div id="no-menu-selected" class="no-menu-selected">
+          <p>Select a menu from the sidebar or create a new one</p>
+        </div>
+
+        <div id="menu-detail-content" class="menu-detail-content hidden">
+          <!-- Menu Configuration Section -->
+          <section class="menu-config-section">
+            <h2>Menu Configuration</h2>
+
+            <div class="form-group">
+              <label for="menuName">Menu Name <span class="required">*</span></label>
+              <input
+                type="text"
+                id="menuName"
+                placeholder="Send to ChatGPT"
+                maxlength="50"
+                required
+              />
+              <small>This name appears in the right-click context menu (max 50 characters)</small>
+            </div>
+
+            <div class="form-group">
+              <label for="customGptUrl">Custom GPT URL <span class="required">*</span></label>
+              <input
+                type="url"
+                id="customGptUrl"
+                placeholder="https://chatgpt.com/g/g-..."
+                required
+              />
+              <small>The URL of your custom ChatGPT assistant</small>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="autoSubmit" />
+                <span>Auto Submit</span>
+              </label>
+              <small>Automatically submit prompts without manual send</small>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="runAllEnabled" />
+                <span>Enable "Run All Actions"</span>
+              </label>
+              <small>Show "Run All" in this menu's context menu and enable keyboard shortcut</small>
+            </div>
+
+            <div class="form-group shortcut-group" id="runAllShortcutGroup">
+              <label for="runAllShortcut">Run All Actions Shortcut</label>
+              <div class="shortcut-capture">
+                <input type="text" id="runAllShortcut" placeholder="None" readonly />
+                <button type="button" class="btn-icon btn-capture" id="runAllShortcutBtn" title="Record shortcut">⌨️</button>
+              </div>
+              <small>Keyboard shortcut to run all enabled actions in this menu</small>
+            </div>
+          </section>
+
+          <!-- Actions Section -->
+          <section class="actions-section">
+            <div class="section-header">
+              <h2>Actions</h2>
+              <button id="add-action" class="btn-secondary">+ Add Action</button>
+            </div>
+
+            <div id="actions-list">
+              <!-- Actions will be dynamically inserted here -->
+            </div>
+          </section>
+
+          <!-- Reload Reminder Note -->
+          <div id="reload-reminder" class="reload-reminder hidden">
+            <strong>NOTE:</strong> You will need to reload any open window/tab for keyboard shortcut changes to take effect
+          </div>
+
+          <!-- Save/Delete Buttons -->
+          <footer class="menu-detail-footer">
+            <button id="save" class="btn-primary">Save Menu</button>
+            <button id="delete-menu" class="btn-danger">Delete Menu</button>
+          </footer>
+        </div>
+      </main>
+    </div>
   </div>
+
+  <!-- Menu Item Template (hidden) -->
+  <template id="menu-template">
+    <div class="menu-item" data-menu-id="">
+      <span class="menu-drag-handle" title="Drag to reorder">≡</span>
+      <span class="menu-name">Menu Name</span>
+    </div>
+  </template>
 
   <!-- Action Item Template (hidden) -->
   <template id="action-template">
