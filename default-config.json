@@ -1,13 +1,19 @@
 {
-  "version": 2,
-  "actions": [],
+  "version": 3,
+  "menus": [
+    {
+      "id": "menu_default_001",
+      "name": "Send to ChatGPT",
+      "customGptUrl": "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
+      "autoSubmit": true,
+      "runAllEnabled": false,
+      "runAllShortcut": "",
+      "order": 1,
+      "actions": []
+    }
+  ],
   "globalSettings": {
-    "autoSubmit": true,
-    "clearContext": true,
-    "contextMenuTitle": "Send to ChatGPT",
-    "customGptUrl": "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
     "gptTitleMatch": "ChatGPT",
-    "runAllEnabled": false,
-    "runAllShortcut": ""
+    "clearContext": true
   }
 }

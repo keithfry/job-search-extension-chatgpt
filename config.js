@@ -1,5 +1,5 @@
 // ====== CONFIG VERSION ======
-const CURRENT_CONFIG_VERSION = 2;
+const CURRENT_CONFIG_VERSION = 3;
 
 // ====== LOAD DEFAULT CONFIG ======
 let DEFAULT_CONFIG = null;
@@ -13,19 +13,25 @@ async function loadDefaultConfig() {
     return DEFAULT_CONFIG;
   } catch (e) {
     console.error('[Config] Failed to load default config:', e);
-    // Fallback to hardcoded minimal config
+    // Fallback to hardcoded minimal config (V3 format)
     return {
       version: CURRENT_CONFIG_VERSION,
+      menus: [
+        {
+          id: `menu_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          name: "Send to ChatGPT",
+          customGptUrl: "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
+          autoSubmit: true,
+          runAllEnabled: false,
+          runAllShortcut: "",
+          order: 1,
+          actions: []
+        }
+      ],
       globalSettings: {
-        customGptUrl: "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
         gptTitleMatch: "ChatGPT",
-        contextMenuTitle: "Send to ChatGPT",
-        clearContext: true,
-        autoSubmit: true,
-        runAllEnabled: false,
-        runAllShortcut: ""
-      },
-      actions: []
+        clearContext: true
+      }
     };
   }
 }
@@ -51,12 +57,53 @@ function migrateConfigVersion(config) {
     // Structure is otherwise compatible
   }
 
+  // Migration from v2 to v3
+  if (configVersion < 3) {
+    migratedConfig = migrateV2toV3(migratedConfig);
+  }
+
   // Future migrations will go here:
-  // if (configVersion < 3) { ... }
   // if (configVersion < 4) { ... }
 
   console.log(`[Config] Migration complete to v${CURRENT_CONFIG_VERSION}`);
   return migratedConfig;
+}
+
+// ====== V2 TO V3 MIGRATION ======
+function migrateV2toV3(v2Config) {
+  console.log('[Config] Migrating V2 → V3: Converting single menu to multi-menu format');
+
+  // Generate unique ID for the menu
+  const menuId = `menu_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+  // Extract V2 global settings
+  const v2Global = v2Config.globalSettings || {};
+  const v2Actions = v2Config.actions || [];
+
+  // Create single menu from V2 data
+  const menu = {
+    id: menuId,
+    name: v2Global.contextMenuTitle || "Send to ChatGPT",
+    customGptUrl: v2Global.customGptUrl || "https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>",
+    autoSubmit: v2Global.autoSubmit !== false, // Default true
+    runAllEnabled: v2Global.runAllEnabled || false,
+    runAllShortcut: v2Global.runAllShortcut || "",
+    order: 1,
+    actions: v2Actions
+  };
+
+  // Create V3 config
+  const v3Config = {
+    version: 3,
+    menus: [menu],
+    globalSettings: {
+      gptTitleMatch: v2Global.gptTitleMatch || "ChatGPT",
+      clearContext: v2Global.clearContext !== false // Default true
+    }
+  };
+
+  console.log(`[Config] V2 → V3 migration complete: Created menu "${menu.name}" with ${v2Actions.length} actions`);
+  return v3Config;
 }
 
 // ====== VALIDATION ======
@@ -72,6 +119,12 @@ function validateConfig(config) {
   const configVersion = config.version || 1;
   console.log(`[Config] Validating config v${configVersion}`);
 
+  // V3 validation (multi-menu format)
+  if (configVersion >= 3) {
+    return validateV3Config(config);
+  }
+
+  // V2 validation (legacy single-menu format)
   // Global settings validation
   if (!config.globalSettings) {
     errors.push('Missing globalSettings');
@@ -138,6 +191,152 @@ function validateConfig(config) {
       errors.push(`Duplicate shortcuts: ${[...new Set(duplicateShortcuts)].join(', ')}`);
     }
   }
+
+  return errors;
+}
+
+// ====== V3 VALIDATION ======
+function validateV3Config(config) {
+  const errors = [];
+
+  // Validate menus array
+  if (!Array.isArray(config.menus)) {
+    errors.push('menus must be an array');
+    return errors;
+  }
+
+  if (config.menus.length === 0) {
+    errors.push('At least one menu is required');
+    return errors;
+  }
+
+  if (config.menus.length > 10) {
+    errors.push('Maximum 10 menus allowed');
+  }
+
+  // Validate global settings
+  if (!config.globalSettings) {
+    errors.push('Missing globalSettings');
+  } else {
+    if (!config.globalSettings.gptTitleMatch?.trim()) {
+      errors.push('GPT Title Match is required');
+    }
+    if (typeof config.globalSettings.clearContext !== 'boolean') {
+      errors.push('clearContext must be true or false');
+    }
+  }
+
+  // Track all shortcuts across all menus for duplicate detection
+  const allShortcuts = [];
+  const allMenuIds = [];
+
+  // Validate each menu
+  config.menus.forEach((menu, menuIndex) => {
+    const menuLabel = `Menu ${menuIndex + 1}`;
+
+    // Menu ID validation
+    if (!menu.id || typeof menu.id !== 'string') {
+      errors.push(`${menuLabel}: Menu ID is required`);
+    } else {
+      if (allMenuIds.includes(menu.id)) {
+        errors.push(`${menuLabel}: Duplicate menu ID "${menu.id}"`);
+      }
+      allMenuIds.push(menu.id);
+    }
+
+    // Menu name validation
+    if (!menu.name?.trim()) {
+      errors.push(`${menuLabel}: Menu name is required`);
+    } else if (menu.name.length > 50) {
+      errors.push(`${menuLabel}: Menu name must be 50 characters or less`);
+    }
+
+    // Custom GPT URL validation
+    if (!menu.customGptUrl?.startsWith('https://chatgpt.com/')) {
+      errors.push(`${menuLabel}: Custom GPT URL must start with https://chatgpt.com/`);
+    }
+
+    // Boolean validations
+    if (typeof menu.autoSubmit !== 'boolean') {
+      errors.push(`${menuLabel}: autoSubmit must be true or false`);
+    }
+    if (typeof menu.runAllEnabled !== 'boolean') {
+      errors.push(`${menuLabel}: runAllEnabled must be true or false`);
+    }
+
+    // Order validation
+    if (typeof menu.order !== 'number') {
+      errors.push(`${menuLabel}: order must be a number`);
+    }
+
+    // Run All shortcut validation (if enabled and configured)
+    if (menu.runAllEnabled && menu.runAllShortcut?.trim()) {
+      const validShortcutPattern = /^(Ctrl|Alt|Shift|Meta)(\+(Ctrl|Alt|Shift|Meta))*\+.+$/;
+      if (!validShortcutPattern.test(menu.runAllShortcut)) {
+        errors.push(`${menuLabel}: Invalid Run All shortcut format (must include modifier keys)`);
+      } else {
+        allShortcuts.push({ shortcut: menu.runAllShortcut, source: `${menu.name} - Run All` });
+      }
+    }
+
+    // Actions validation
+    if (!Array.isArray(menu.actions)) {
+      errors.push(`${menuLabel}: actions must be an array`);
+    } else if (menu.actions.length > 0) {
+      const actionIds = [];
+
+      menu.actions.forEach((action, actionIndex) => {
+        const actionLabel = `${menuLabel}, Action ${actionIndex + 1}`;
+
+        // Action ID validation
+        if (!action.id || !/^[a-zA-Z0-9_-]+$/.test(action.id)) {
+          errors.push(`${actionLabel}: Invalid ID format (alphanumeric, dash, underscore only)`);
+        } else {
+          if (actionIds.includes(action.id)) {
+            errors.push(`${actionLabel}: Duplicate action ID "${action.id}" within menu`);
+          }
+          actionIds.push(action.id);
+        }
+
+        // Action title and prompt validation
+        if (!action.title?.trim()) {
+          errors.push(`${actionLabel}: Title is required`);
+        }
+        if (!action.prompt?.trim()) {
+          errors.push(`${actionLabel}: Prompt is required`);
+        }
+
+        // Shortcut validation
+        if (action.shortcut && action.shortcut.trim()) {
+          const validShortcutPattern = /^(Ctrl|Alt|Shift|Meta)(\+(Ctrl|Alt|Shift|Meta))*\+.+$/;
+          if (!validShortcutPattern.test(action.shortcut)) {
+            errors.push(`${actionLabel}: Invalid shortcut format (must include modifier keys)`);
+          } else if (action.enabled) {
+            // Only track enabled action shortcuts for duplicate detection
+            allShortcuts.push({ shortcut: action.shortcut, source: `${menu.name} - ${action.title}` });
+          }
+        }
+
+        // Boolean and number validations
+        if (typeof action.enabled !== 'boolean') {
+          errors.push(`${actionLabel}: enabled must be true or false`);
+        }
+        if (typeof action.order !== 'number') {
+          errors.push(`${actionLabel}: order must be a number`);
+        }
+      });
+    }
+  });
+
+  // Check for duplicate shortcuts across ALL menus
+  const shortcutMap = new Map();
+  allShortcuts.forEach(({ shortcut, source }) => {
+    if (shortcutMap.has(shortcut)) {
+      errors.push(`Duplicate shortcut "${shortcut}" used by: "${shortcutMap.get(shortcut)}" and "${source}"`);
+    } else {
+      shortcutMap.set(shortcut, source);
+    }
+  });
 
   return errors;
 }
