@@ -205,11 +205,6 @@ function validateV3Config(config) {
     return errors;
   }
 
-  if (config.menus.length === 0) {
-    errors.push('At least one menu is required');
-    return errors;
-  }
-
   if (config.menus.length > 10) {
     errors.push('Maximum 10 menus allowed');
   }

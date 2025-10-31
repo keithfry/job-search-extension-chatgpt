@@ -152,6 +152,9 @@ function selectMenu(menuId) {
   noMenuSelected.classList.add('hidden');
   menuDetailContent.classList.remove('hidden');
 
+  // Scroll to top of page to show menu details
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // Load menu details
   loadMenuDetails(menuId);
 }
@@ -224,11 +227,6 @@ function handleAddMenu() {
 async function handleDeleteMenu() {
   if (!selectedMenuId) return;
 
-  if (currentConfig.menus.length === 1) {
-    showError('Cannot delete the last menu. At least one menu is required.');
-    return;
-  }
-
   const menu = currentConfig.menus.find(m => m.id === selectedMenuId);
   if (!menu) return;
 
@@ -247,7 +245,7 @@ async function handleDeleteMenu() {
     m.order = index + 1;
   });
 
-  // Select another menu
+  // Select another menu or show empty state
   if (currentConfig.menus.length > 0) {
     const firstMenu = currentConfig.menus.sort((a, b) => a.order - b.order)[0];
     selectedMenuId = firstMenu.id;
@@ -255,15 +253,22 @@ async function handleDeleteMenu() {
     selectedMenuId = null;
   }
 
-  // Re-render
-  renderMenuList();
-  if (selectedMenuId) {
-    selectMenu(selectedMenuId);
-  } else {
-    showNoMenuSelected();
-  }
+  // Save config
+  try {
+    await saveConfig(currentConfig);
 
-  hideAllBanners();
+    // Re-render
+    renderMenuList();
+    if (selectedMenuId) {
+      selectMenu(selectedMenuId);
+    } else {
+      showNoMenuSelected();
+    }
+
+    showSuccess(`Menu "${menu.name}" deleted successfully`);
+  } catch (e) {
+    showError('Failed to delete menu: ' + e.message);
+  }
 }
 
 // ====== MENU DRAG AND DROP ======
