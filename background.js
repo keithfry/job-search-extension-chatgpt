@@ -60,38 +60,81 @@ async function rebuildContextMenus() {
       }
     };
 
-    // Create root menu
-    createMenuItem({
-      id: 'jobSearchRoot',
-      title: config.globalSettings.contextMenuTitle,
-      contexts: ['selection']
-    });
+    // V3: Multiple menus
+    if (config.menus && Array.isArray(config.menus)) {
+      const sortedMenus = [...config.menus].sort((a, b) => a.order - b.order);
 
-    // Create menu item for each enabled action
-    const enabledActions = config.actions
-      .filter(action => action.enabled)
-      .sort((a, b) => a.order - b.order);
+      sortedMenus.forEach(menu => {
+        // Create parent menu item for each menu
+        createMenuItem({
+          id: menu.id,
+          title: menu.name,
+          contexts: ['selection']
+        });
 
-    enabledActions.forEach(action => {
-      createMenuItem({
-        id: action.id,
-        parentId: 'jobSearchRoot',
-        title: action.title,
-        contexts: ['selection']
+        // Get enabled actions for this menu
+        const enabledActions = menu.actions
+          .filter(action => action.enabled)
+          .sort((a, b) => a.order - b.order);
+
+        // Create menu items for each enabled action
+        enabledActions.forEach(action => {
+          createMenuItem({
+            id: `${menu.id}__${action.id}`,
+            parentId: menu.id,
+            title: action.title,
+            contexts: ['selection']
+          });
+        });
+
+        // Create "Run All" for this menu if enabled and has multiple actions
+        if (menu.runAllEnabled && enabledActions.length > 1) {
+          createMenuItem({
+            id: `${menu.id}__runAll`,
+            parentId: menu.id,
+            title: 'Run All Actions',
+            contexts: ['selection']
+          });
+        }
+
+        console.log(`[Background] Menu "${menu.name}": ${enabledActions.length} actions`);
       });
-    });
 
-    // Create "Run All" menu item if enabled and there are multiple actions
-    if (config.globalSettings.runAllEnabled && enabledActions.length > 1) {
-      createMenuItem({
-        id: 'runAll',
-        parentId: 'jobSearchRoot',
-        title: 'Run All Actions',
-        contexts: ['selection']
-      });
+      console.log(`[Background] Context menus rebuilt: ${sortedMenus.length} menus`);
     }
+    // V2 fallback (for migration compatibility)
+    else {
+      console.log('[Background] Using V2 fallback for context menus');
+      createMenuItem({
+        id: 'jobSearchRoot',
+        title: config.globalSettings?.contextMenuTitle || 'Send to ChatGPT',
+        contexts: ['selection']
+      });
 
-    console.log('[Background] Context menus rebuilt:', enabledActions.length, 'actions');
+      const enabledActions = (config.actions || [])
+        .filter(action => action.enabled)
+        .sort((a, b) => a.order - b.order);
+
+      enabledActions.forEach(action => {
+        createMenuItem({
+          id: action.id,
+          parentId: 'jobSearchRoot',
+          title: action.title,
+          contexts: ['selection']
+        });
+      });
+
+      if (config.globalSettings?.runAllEnabled && enabledActions.length > 1) {
+        createMenuItem({
+          id: 'runAll',
+          parentId: 'jobSearchRoot',
+          title: 'Run All Actions',
+          contexts: ['selection']
+        });
+      }
+
+      console.log('[Background] Context menus rebuilt (V2 format):', enabledActions.length, 'actions');
+    }
   } catch (e) {
     console.error('[Background] Error rebuilding context menus:', e);
   } finally {
@@ -103,16 +146,33 @@ async function rebuildContextMenus() {
 function buildShortcutMap(config) {
   const map = new Map();
 
-  // Add individual action shortcuts
-  config.actions
-    .filter(action => action.enabled && action.shortcut)
-    .forEach(action => {
-      map.set(action.shortcut, action.id);
-    });
+  // V3: Multiple menus
+  if (config.menus && Array.isArray(config.menus)) {
+    config.menus.forEach(menu => {
+      // Add individual action shortcuts
+      menu.actions
+        .filter(action => action.enabled && action.shortcut)
+        .forEach(action => {
+          map.set(action.shortcut, { menuId: menu.id, actionId: action.id });
+        });
 
-  // Add Run All shortcut if enabled and configured
-  if (config.globalSettings.runAllEnabled && config.globalSettings.runAllShortcut) {
-    map.set(config.globalSettings.runAllShortcut, 'runAll');
+      // Add Run All shortcut for this menu if enabled and configured
+      if (menu.runAllEnabled && menu.runAllShortcut) {
+        map.set(menu.runAllShortcut, { menuId: menu.id, actionId: 'runAll' });
+      }
+    });
+  }
+  // V2 fallback
+  else {
+    config.actions
+      ?.filter(action => action.enabled && action.shortcut)
+      .forEach(action => {
+        map.set(action.shortcut, action.id);
+      });
+
+    if (config.globalSettings?.runAllEnabled && config.globalSettings?.runAllShortcut) {
+      map.set(config.globalSettings.runAllShortcut, 'runAll');
+    }
   }
 
   return map;
@@ -146,38 +206,77 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   if (!info.selectionText) return;
 
   const config = await loadConfig();
-  const actionId = info.menuItemId;
+  const menuItemId = info.menuItemId;
 
-  // Handle "Run All" action
-  if (actionId === 'runAll') {
-    await runAllActions(info.selectionText.trim(), config);
-    return;
+  // V3: Multiple menus (parse namespace menuId__actionId)
+  if (config.menus && Array.isArray(config.menus)) {
+    // Parse menuItemId to extract menuId and actionId
+    const parts = menuItemId.split('__');
+
+    if (parts.length === 2) {
+      const [menuId, actionId] = parts;
+
+      // Find the menu
+      const menu = config.menus.find(m => m.id === menuId);
+      if (!menu) {
+        console.warn('[Background] Menu not found:', menuId);
+        return;
+      }
+
+      // Handle "Run All" for this menu
+      if (actionId === 'runAll') {
+        await runAllActions(info.selectionText.trim(), menu, config);
+        return;
+      }
+
+      // Find the action within the menu
+      const action = menu.actions.find(a => a.id === actionId);
+      if (!action) {
+        console.warn('[Background] Action not found:', actionId, 'in menu:', menu.name);
+        return;
+      }
+
+      // Execute single action with menu's settings
+      await executeAction(action, info.selectionText.trim(), menu, config);
+    } else {
+      console.warn('[Background] Invalid menu item ID format:', menuItemId);
+    }
   }
+  // V2 fallback
+  else {
+    const actionId = menuItemId;
 
-  // Find the action
-  const action = config.actions.find(a => a.id === actionId);
-  if (!action) {
-    console.warn('[Background] Action not found:', actionId);
-    return;
+    // Handle "Run All" action
+    if (actionId === 'runAll') {
+      await runAllActionsV2(info.selectionText.trim(), config);
+      return;
+    }
+
+    // Find the action
+    const action = config.actions?.find(a => a.id === actionId);
+    if (!action) {
+      console.warn('[Background] Action not found:', actionId);
+      return;
+    }
+
+    // Execute single action (V2 format)
+    await executeActionV2(action, info.selectionText.trim(), config);
   }
-
-  // Execute single action
-  await executeAction(action, info.selectionText.trim(), config);
 });
 
-// ====== SINGLE ACTION EXECUTION ======
-async function executeAction(action, selectionText, config) {
+// ====== SINGLE ACTION EXECUTION (V3) ======
+async function executeAction(action, selectionText, menu, config) {
   const prompt = `${action.prompt} ${selectionText}`;
 
   try {
-    const tabId = await openOrFocusGptTab(config, { clear: config.globalSettings.clearContext });
+    const tabId = await openOrFocusGptTab(menu.customGptUrl, config.globalSettings.clearContext);
 
     const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     // Attempt #1
     const ok1 = await tryInjectWithTiming(tabId, prompt, {
       label: `${action.id}-attempt#1`,
-      autoSubmit: config.globalSettings.autoSubmit,
+      autoSubmit: menu.autoSubmit,
       reqId
     });
 
@@ -185,36 +284,70 @@ async function executeAction(action, selectionText, config) {
     if (!ok1) {
       setTimeout(() => tryInjectWithTiming(tabId, prompt, {
         label: `${action.id}-attempt#2`,
-        autoSubmit: config.globalSettings.autoSubmit,
+        autoSubmit: menu.autoSubmit,
         reqId
       }), 1200);
     }
   } catch (e) {
     console.warn('[Background] Failed to execute action:', action.id, e);
-    const t = await chrome.tabs.create({ url: config.globalSettings.customGptUrl, active: true });
+    const t = await chrome.tabs.create({ url: menu.customGptUrl, active: true });
     const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setTimeout(() => tryInjectWithTiming(t.id, prompt, {
       label: `${action.id}-fallback`,
-      autoSubmit: config.globalSettings.autoSubmit,
+      autoSubmit: menu.autoSubmit,
       reqId
     }), 1200);
   }
 }
 
-// ====== RUN ALL ACTIONS HANDLER ======
-async function runAllActions(selectionText, config) {
-  // Get all enabled actions
-  const enabledActions = config.actions
+// ====== SINGLE ACTION EXECUTION (V2 fallback) ======
+async function executeActionV2(action, selectionText, config) {
+  const prompt = `${action.prompt} ${selectionText}`;
+
+  try {
+    const tabId = await openOrFocusGptTabV2(config, { clear: config.globalSettings?.clearContext });
+
+    const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const ok1 = await tryInjectWithTiming(tabId, prompt, {
+      label: `${action.id}-attempt#1`,
+      autoSubmit: config.globalSettings?.autoSubmit,
+      reqId
+    });
+
+    if (!ok1) {
+      setTimeout(() => tryInjectWithTiming(tabId, prompt, {
+        label: `${action.id}-attempt#2`,
+        autoSubmit: config.globalSettings?.autoSubmit,
+        reqId
+      }), 1200);
+    }
+  } catch (e) {
+    console.warn('[Background] Failed to execute action:', action.id, e);
+    const t = await chrome.tabs.create({ url: config.globalSettings?.customGptUrl, active: true });
+    const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setTimeout(() => tryInjectWithTiming(t.id, prompt, {
+      label: `${action.id}-fallback`,
+      autoSubmit: config.globalSettings?.autoSubmit,
+      reqId
+    }), 1200);
+  }
+}
+
+// ====== RUN ALL ACTIONS HANDLER (V3) ======
+async function runAllActions(selectionText, menu, config) {
+  // Get all enabled actions for this menu
+  const enabledActions = menu.actions
     .filter(action => action.enabled)
     .sort((a, b) => a.order - b.order);
 
-  console.log(`[Background] Run All: Found ${enabledActions.length} enabled actions:`, enabledActions.map(a => a.title));
+  console.log(`[Background] Run All for "${menu.name}": Found ${enabledActions.length} enabled actions:`, enabledActions.map(a => a.title));
 
   // Step 1: Create all tabs immediately IN ORDER, then wait for them to load IN PARALLEL
   const tabCreationPromises = enabledActions.map(async (action) => {
     try {
       const tab = await chrome.tabs.create({
-        url: config.globalSettings.customGptUrl,
+        url: menu.customGptUrl,
         active: false
       });
       const tabId = await waitForTitleMatch(tab.id, config.globalSettings.gptTitleMatch, 20000);
@@ -241,7 +374,7 @@ async function runAllActions(selectionText, config) {
       // Attempt #1
       const ok1 = await tryInjectWithTiming(tabId, prompt, {
         label: `runAll-${action.id}-attempt#1`,
-        autoSubmit: config.globalSettings.autoSubmit,
+        autoSubmit: menu.autoSubmit,
         reqId
       });
 
@@ -249,7 +382,61 @@ async function runAllActions(selectionText, config) {
       if (!ok1) {
         setTimeout(() => tryInjectWithTiming(tabId, prompt, {
           label: `runAll-${action.id}-attempt#2`,
-          autoSubmit: config.globalSettings.autoSubmit,
+          autoSubmit: menu.autoSubmit,
+          reqId
+        }), 1200);
+      }
+    } catch (e) {
+      console.warn(`[Background] Failed to inject prompt for ${action.title}:`, e);
+    }
+  });
+
+  await Promise.all(promises);
+  console.log(`[Background] All actions launched for menu "${menu.name}"`);
+}
+
+// ====== RUN ALL ACTIONS HANDLER (V2 fallback) ======
+async function runAllActionsV2(selectionText, config) {
+  const enabledActions = (config.actions || [])
+    .filter(action => action.enabled)
+    .sort((a, b) => a.order - b.order);
+
+  console.log(`[Background] Run All: Found ${enabledActions.length} enabled actions:`, enabledActions.map(a => a.title));
+
+  const tabCreationPromises = enabledActions.map(async (action) => {
+    try {
+      const tab = await chrome.tabs.create({
+        url: config.globalSettings?.customGptUrl,
+        active: false
+      });
+      const tabId = await waitForTitleMatch(tab.id, config.globalSettings?.gptTitleMatch || 'ChatGPT', 20000);
+      console.log(`[Background] Created tab ${tabId} for ${action.title}`);
+      return { action, tabId };
+    } catch (e) {
+      console.warn(`[Background] Failed to create tab for ${action.title}:`, e);
+      return null;
+    }
+  });
+
+  const results = await Promise.all(tabCreationPromises);
+  const tabData = results.filter(r => r !== null);
+
+  const promises = tabData.map(async ({ action, tabId }) => {
+    const prompt = `${action.prompt} ${selectionText}`;
+
+    try {
+      const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const ok1 = await tryInjectWithTiming(tabId, prompt, {
+        label: `runAll-${action.id}-attempt#1`,
+        autoSubmit: config.globalSettings?.autoSubmit,
+        reqId
+      });
+
+      if (!ok1) {
+        setTimeout(() => tryInjectWithTiming(tabId, prompt, {
+          label: `runAll-${action.id}-attempt#2`,
+          autoSubmit: config.globalSettings?.autoSubmit,
           reqId
         }), 1200);
       }
@@ -263,12 +450,20 @@ async function runAllActions(selectionText, config) {
 }
 
 // ====== TAB/TITLE HELPERS ======
-async function openOrFocusGptTab(config, { clear = false } = {}) {
+async function openOrFocusGptTab(customGptUrl, clearContext) {
   const created = await chrome.tabs.create({
-    url: `${config.globalSettings.customGptUrl}?fresh=${Date.now()}`,
+    url: `${customGptUrl}?fresh=${Date.now()}`,
     active: true
   });
-  return await waitForTitleMatch(created.id, config.globalSettings.gptTitleMatch, 20000);
+  return created.id;
+}
+
+async function openOrFocusGptTabV2(config, { clear = false } = {}) {
+  const created = await chrome.tabs.create({
+    url: `${config.globalSettings?.customGptUrl}?fresh=${Date.now()}`,
+    active: true
+  });
+  return await waitForTitleMatch(created.id, config.globalSettings?.gptTitleMatch || 'ChatGPT', 20000);
 }
 
 function waitForTitleMatch(tabId, titleSubstring, timeoutMs = 20000) {
@@ -514,21 +709,55 @@ async function handleShortcutExecution(actionId, selectionText) {
   try {
     const config = await loadConfig();
 
-    // Handle "Run All" shortcut
-    if (actionId === 'runAll') {
-      await runAllActions(selectionText, config);
-      return;
-    }
+    // V3: actionId is object with {menuId, actionId}
+    if (config.menus && Array.isArray(config.menus)) {
+      if (typeof actionId === 'object' && actionId.menuId && actionId.actionId) {
+        const { menuId, actionId: actId } = actionId;
 
-    // Find the action
-    const action = config.actions.find(a => a.id === actionId);
-    if (!action) {
-      console.warn('[Background] Action not found for shortcut:', actionId);
-      return;
-    }
+        // Find the menu
+        const menu = config.menus.find(m => m.id === menuId);
+        if (!menu) {
+          console.warn('[Background] Menu not found for shortcut:', menuId);
+          return;
+        }
 
-    // Execute the action
-    await executeAction(action, selectionText, config);
+        // Handle "Run All" shortcut
+        if (actId === 'runAll') {
+          await runAllActions(selectionText, menu, config);
+          return;
+        }
+
+        // Find the action
+        const action = menu.actions.find(a => a.id === actId);
+        if (!action) {
+          console.warn('[Background] Action not found for shortcut:', actId, 'in menu:', menu.name);
+          return;
+        }
+
+        // Execute the action
+        await executeAction(action, selectionText, menu, config);
+      } else {
+        console.warn('[Background] Invalid shortcut action ID format:', actionId);
+      }
+    }
+    // V2 fallback
+    else {
+      // Handle "Run All" shortcut
+      if (actionId === 'runAll') {
+        await runAllActionsV2(selectionText, config);
+        return;
+      }
+
+      // Find the action
+      const action = config.actions?.find(a => a.id === actionId);
+      if (!action) {
+        console.warn('[Background] Action not found for shortcut:', actionId);
+        return;
+      }
+
+      // Execute the action
+      await executeActionV2(action, selectionText, config);
+    }
   } catch (e) {
     console.error('[Background] Failed to handle shortcut execution:', e);
   }
