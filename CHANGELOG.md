@@ -5,6 +5,16 @@ All notable changes to ChatGPT Custom Prompts extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-10-31
+
+### Changed
+- Prompt input field in options page changed from single-line to multiline textarea
+- Textarea defaults to 2 rows and is vertically expandable for longer prompts
+
+### Improved
+- User experience when creating and editing action prompts
+- Better support for complex, multi-line prompt templates
+
 ## [2.1.1] - 2025-10-26
 
 ### Added

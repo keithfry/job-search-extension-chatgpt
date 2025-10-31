@@ -136,7 +136,8 @@ h2 {
 }
 
 .form-group input[type="text"],
-.form-group input[type="url"] {
+.form-group input[type="url"],
+.form-group textarea {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #dadce0;
@@ -146,15 +147,23 @@ h2 {
   transition: border-color 0.2s;
 }
 
+.form-group textarea {
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.5;
+}
+
 .form-group input[type="text"]:focus,
-.form-group input[type="url"]:focus {
+.form-group input[type="url"]:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #1a73e8;
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
 }
 
 .form-group input[type="text"].error,
-.form-group input[type="url"].error {
+.form-group input[type="url"].error,
+.form-group textarea.error {
   border-color: #d93025;
   box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.1);
 }
