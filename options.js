@@ -1,47 +1,69 @@
 import { getConfig, saveConfig, validateConfig } from './config.js';
 
 // ====== DOM ELEMENTS ======
+// Menu management
+const menuListContainer = document.getElementById('menu-list');
+const addMenuButton = document.getElementById('add-menu');
+const menuCountDisplay = document.getElementById('menu-count');
+const noMenuSelected = document.getElementById('no-menu-selected');
+const menuDetailContent = document.getElementById('menu-detail-content');
+const deleteMenuButton = document.getElementById('delete-menu');
+const menuTemplate = document.getElementById('menu-template');
+
+// Menu configuration
+const menuNameInput = document.getElementById('menuName');
 const customGptUrlInput = document.getElementById('customGptUrl');
-const contextMenuTitleInput = document.getElementById('contextMenuTitle');
 const autoSubmitCheckbox = document.getElementById('autoSubmit');
 const runAllEnabledCheckbox = document.getElementById('runAllEnabled');
 const runAllShortcutInput = document.getElementById('runAllShortcut');
 const runAllShortcutBtn = document.getElementById('runAllShortcutBtn');
 const runAllShortcutGroup = document.getElementById('runAllShortcutGroup');
+
+// Actions
 const actionsListContainer = document.getElementById('actions-list');
 const addActionButton = document.getElementById('add-action');
+const actionTemplate = document.getElementById('action-template');
+
+// Global actions
 const saveButton = document.getElementById('save');
-const cancelButton = document.getElementById('cancel');
 const exportButton = document.getElementById('export-config');
 const importButton = document.getElementById('import-config');
 const importFileInput = document.getElementById('import-file-input');
+
+// Banners
 const errorBanner = document.getElementById('error-banner');
 const warningBanner = document.getElementById('warning-banner');
 const successBanner = document.getElementById('success-banner');
 const reloadReminder = document.getElementById('reload-reminder');
-const actionTemplate = document.getElementById('action-template');
 
 // ====== STATE ======
 let currentConfig = null;
+let selectedMenuId = null;
 let draggedElement = null;
+let draggedMenuElement = null;
+
+// ====== INITIALIZATION ======
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadAndRender();
+  attachEventListeners();
+});
 
 // ====== LOAD AND RENDER ======
 async function loadAndRender() {
   try {
     currentConfig = await getConfig();
 
-    // Populate global settings
-    customGptUrlInput.value = currentConfig.globalSettings.customGptUrl;
-    contextMenuTitleInput.value = currentConfig.globalSettings.contextMenuTitle;
-    autoSubmitCheckbox.checked = currentConfig.globalSettings.autoSubmit;
-    runAllEnabledCheckbox.checked = currentConfig.globalSettings.runAllEnabled !== false; // default true
-    runAllShortcutInput.value = currentConfig.globalSettings.runAllShortcut || '';
+    // Render menu list
+    renderMenuList();
 
-    // Show/hide Run All shortcut based on checkbox
-    toggleRunAllShortcutVisibility();
-
-    // Render actions
-    renderActions();
+    // Select first menu by default
+    if (currentConfig.menus && currentConfig.menus.length > 0) {
+      const firstMenu = currentConfig.menus.sort((a, b) => a.order - b.order)[0];
+      selectMenu(firstMenu.id);
+    } else {
+      // No menus - show empty state
+      showNoMenuSelected();
+    }
 
     // Hide banners and reload reminder
     hideAllBanners();
@@ -51,14 +73,252 @@ async function loadAndRender() {
   }
 }
 
-function renderActions() {
-  // Clear current actions
+// ====== MENU LIST RENDERING ======
+function renderMenuList() {
+  menuListContainer.innerHTML = '';
+
+  if (!currentConfig.menus || currentConfig.menus.length === 0) {
+    updateMenuCount();
+    return;
+  }
+
+  const sortedMenus = [...currentConfig.menus].sort((a, b) => a.order - b.order);
+
+  sortedMenus.forEach(menu => {
+    const menuElement = createMenuElement(menu);
+    menuListContainer.appendChild(menuElement);
+  });
+
+  updateMenuCount();
+}
+
+function createMenuElement(menu) {
+  const template = menuTemplate.content.cloneNode(true);
+  const menuItem = template.querySelector('.menu-item');
+
+  menuItem.dataset.menuId = menu.id;
+  menuItem.querySelector('.menu-name').textContent = menu.name;
+
+  // Mark as selected if this is the currently selected menu
+  if (menu.id === selectedMenuId) {
+    menuItem.classList.add('selected');
+  }
+
+  // Attach click handler
+  menuItem.addEventListener('click', () => selectMenu(menu.id));
+
+  // Drag and drop for reordering
+  const dragHandle = menuItem.querySelector('.menu-drag-handle');
+  dragHandle.addEventListener('mousedown', () => {
+    menuItem.draggable = true;
+  });
+
+  menuItem.addEventListener('dragstart', handleMenuDragStart);
+  menuItem.addEventListener('dragover', handleMenuDragOver);
+  menuItem.addEventListener('drop', handleMenuDrop);
+  menuItem.addEventListener('dragend', handleMenuDragEnd);
+
+  return menuItem;
+}
+
+function updateMenuCount() {
+  const count = currentConfig.menus ? currentConfig.menus.length : 0;
+  menuCountDisplay.textContent = `${count}/10 menus`;
+
+  // Disable add button if at limit
+  if (count >= 10) {
+    addMenuButton.disabled = true;
+    addMenuButton.title = 'Maximum 10 menus reached';
+  } else {
+    addMenuButton.disabled = false;
+    addMenuButton.title = '';
+  }
+}
+
+// ====== MENU SELECTION ======
+function selectMenu(menuId) {
+  selectedMenuId = menuId;
+
+  // Update selected state in sidebar
+  menuListContainer.querySelectorAll('.menu-item').forEach(item => {
+    if (item.dataset.menuId === menuId) {
+      item.classList.add('selected');
+    } else {
+      item.classList.remove('selected');
+    }
+  });
+
+  // Show detail panel
+  noMenuSelected.classList.add('hidden');
+  menuDetailContent.classList.remove('hidden');
+
+  // Load menu details
+  loadMenuDetails(menuId);
+}
+
+function showNoMenuSelected() {
+  selectedMenuId = null;
+  noMenuSelected.classList.remove('hidden');
+  menuDetailContent.classList.add('hidden');
+}
+
+function loadMenuDetails(menuId) {
+  const menu = currentConfig.menus.find(m => m.id === menuId);
+  if (!menu) {
+    showError('Menu not found');
+    return;
+  }
+
+  // Populate menu configuration
+  menuNameInput.value = menu.name;
+  customGptUrlInput.value = menu.customGptUrl;
+  autoSubmitCheckbox.checked = menu.autoSubmit;
+  runAllEnabledCheckbox.checked = menu.runAllEnabled;
+  runAllShortcutInput.value = menu.runAllShortcut || '';
+
+  // Show/hide Run All shortcut based on checkbox
+  toggleRunAllShortcutVisibility();
+
+  // Render actions for this menu
+  renderActions(menu);
+}
+
+// ====== MENU CRUD OPERATIONS ======
+function handleAddMenu() {
+  if (currentConfig.menus.length >= 10) {
+    showError('Maximum 10 menus allowed');
+    return;
+  }
+
+  // Generate unique ID
+  const menuId = `menu_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+  // Create new menu
+  const newMenu = {
+    id: menuId,
+    name: `New Menu ${currentConfig.menus.length + 1}`,
+    customGptUrl: 'https://chatgpt.com/g/g-<<YOUR CUSTOM GPT URL>>',
+    autoSubmit: true,
+    runAllEnabled: false,
+    runAllShortcut: '',
+    order: currentConfig.menus.length + 1,
+    actions: []
+  };
+
+  // Add to config
+  currentConfig.menus.push(newMenu);
+
+  // Re-render menu list
+  renderMenuList();
+
+  // Select the new menu
+  selectMenu(menuId);
+
+  // Focus on menu name input
+  menuNameInput.focus();
+  menuNameInput.select();
+
+  hideAllBanners();
+}
+
+async function handleDeleteMenu() {
+  if (!selectedMenuId) return;
+
+  if (currentConfig.menus.length === 1) {
+    showError('Cannot delete the last menu. At least one menu is required.');
+    return;
+  }
+
+  const menu = currentConfig.menus.find(m => m.id === selectedMenuId);
+  if (!menu) return;
+
+  const actionCount = menu.actions.length;
+  const confirmMessage = actionCount > 0
+    ? `Delete menu "${menu.name}" and its ${actionCount} action(s)?`
+    : `Delete menu "${menu.name}"?`;
+
+  if (!confirm(confirmMessage)) return;
+
+  // Remove menu
+  currentConfig.menus = currentConfig.menus.filter(m => m.id !== selectedMenuId);
+
+  // Reorder remaining menus
+  currentConfig.menus.forEach((m, index) => {
+    m.order = index + 1;
+  });
+
+  // Select another menu
+  if (currentConfig.menus.length > 0) {
+    const firstMenu = currentConfig.menus.sort((a, b) => a.order - b.order)[0];
+    selectedMenuId = firstMenu.id;
+  } else {
+    selectedMenuId = null;
+  }
+
+  // Re-render
+  renderMenuList();
+  if (selectedMenuId) {
+    selectMenu(selectedMenuId);
+  } else {
+    showNoMenuSelected();
+  }
+
+  hideAllBanners();
+}
+
+// ====== MENU DRAG AND DROP ======
+function handleMenuDragStart(e) {
+  draggedMenuElement = e.target.closest('.menu-item');
+  draggedMenuElement.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleMenuDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+
+  const afterElement = getDragAfterElement(menuListContainer, e.clientY);
+  if (afterElement == null) {
+    menuListContainer.appendChild(draggedMenuElement);
+  } else {
+    menuListContainer.insertBefore(draggedMenuElement, afterElement);
+  }
+}
+
+function handleMenuDrop(e) {
+  e.preventDefault();
+  updateMenuOrders();
+}
+
+function handleMenuDragEnd(e) {
+  if (draggedMenuElement) {
+    draggedMenuElement.classList.remove('dragging');
+    draggedMenuElement.draggable = false;
+    draggedMenuElement = null;
+  }
+}
+
+function updateMenuOrders() {
+  const menuItems = menuListContainer.querySelectorAll('.menu-item');
+  menuItems.forEach((item, index) => {
+    const menuId = item.dataset.menuId;
+    const menu = currentConfig.menus.find(m => m.id === menuId);
+    if (menu) {
+      menu.order = index + 1;
+    }
+  });
+}
+
+// ====== ACTIONS RENDERING ======
+function renderActions(menu) {
   actionsListContainer.innerHTML = '';
 
-  // Sort actions by order
-  const sortedActions = [...currentConfig.actions].sort((a, b) => a.order - b.order);
+  if (!menu.actions || menu.actions.length === 0) {
+    return;
+  }
 
-  // Render each action
+  const sortedActions = [...menu.actions].sort((a, b) => a.order - b.order);
+
   sortedActions.forEach((action, index) => {
     const actionElement = createActionElement(action, index);
     actionsListContainer.appendChild(actionElement);
@@ -66,15 +326,12 @@ function renderActions() {
 }
 
 function createActionElement(action, index) {
-  // Clone template
   const template = actionTemplate.content.cloneNode(true);
   const actionItem = template.querySelector('.action-item');
 
-  // Set data attributes
   actionItem.dataset.actionId = action.id;
   actionItem.dataset.order = action.order;
 
-  // Populate fields
   const titleInput = actionItem.querySelector('.action-title');
   const promptInput = actionItem.querySelector('.action-prompt');
   const shortcutInput = actionItem.querySelector('.action-shortcut');
@@ -85,7 +342,6 @@ function createActionElement(action, index) {
   shortcutInput.value = action.shortcut || '';
   enabledCheckbox.checked = action.enabled;
 
-  // Attach event listeners
   attachActionEventListeners(actionItem);
 
   return actionItem;
@@ -93,35 +349,28 @@ function createActionElement(action, index) {
 
 // ====== ACTION EVENT LISTENERS ======
 function attachActionEventListeners(actionItem) {
-  // Move up button
   const moveUpBtn = actionItem.querySelector('[data-action="move-up"]');
   moveUpBtn.addEventListener('click', () => moveActionUp(actionItem));
 
-  // Move down button
   const moveDownBtn = actionItem.querySelector('[data-action="move-down"]');
   moveDownBtn.addEventListener('click', () => moveActionDown(actionItem));
 
-  // Delete button
   const deleteBtn = actionItem.querySelector('[data-action="delete"]');
   deleteBtn.addEventListener('click', () => deleteAction(actionItem));
 
-  // Shortcut capture button
   const captureBtn = actionItem.querySelector('.btn-capture');
   const shortcutInput = actionItem.querySelector('.action-shortcut');
   captureBtn.addEventListener('click', () => captureShortcut(shortcutInput));
 
-  // Delete key to clear shortcut
   shortcutInput.addEventListener('keydown', (e) => {
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       shortcutInput.value = '';
-      // Show reload reminder since shortcut was changed
       reloadReminder.classList.remove('hidden');
       hideAllBanners();
     }
   });
 
-  // Remove error styling when user types in required fields
   const titleInput = actionItem.querySelector('.action-title');
   const promptInput = actionItem.querySelector('.action-prompt');
 
@@ -143,10 +392,10 @@ function attachActionEventListeners(actionItem) {
     actionItem.draggable = true;
   });
 
-  actionItem.addEventListener('dragstart', handleDragStart);
-  actionItem.addEventListener('dragover', handleDragOver);
-  actionItem.addEventListener('drop', handleDrop);
-  actionItem.addEventListener('dragend', handleDragEnd);
+  actionItem.addEventListener('dragstart', handleActionDragStart);
+  actionItem.addEventListener('dragover', handleActionDragOver);
+  actionItem.addEventListener('drop', handleActionDrop);
+  actionItem.addEventListener('dragend', handleActionDragEnd);
 }
 
 // ====== ACTION MANIPULATION ======
@@ -182,14 +431,44 @@ function updateActionOrders() {
   });
 }
 
-// ====== DRAG AND DROP ======
-function handleDragStart(e) {
+function handleAddAction() {
+  if (!selectedMenuId) {
+    showError('Please select a menu first');
+    return;
+  }
+
+  const menu = currentConfig.menus.find(m => m.id === selectedMenuId);
+  if (!menu) return;
+
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 7);
+  const newId = `action_${timestamp}_${randomStr}`;
+
+  const newAction = {
+    id: newId,
+    title: 'New Action',
+    prompt: '',
+    shortcut: '',
+    enabled: true,
+    order: actionsListContainer.children.length + 1
+  };
+
+  const actionElement = createActionElement(newAction, actionsListContainer.children.length);
+  actionsListContainer.appendChild(actionElement);
+
+  const titleInput = actionElement.querySelector('.action-title');
+  titleInput.focus();
+  titleInput.select();
+}
+
+// ====== ACTION DRAG AND DROP ======
+function handleActionDragStart(e) {
   draggedElement = e.target.closest('.action-item');
   draggedElement.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
 }
 
-function handleDragOver(e) {
+function handleActionDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 
@@ -201,12 +480,12 @@ function handleDragOver(e) {
   }
 }
 
-function handleDrop(e) {
+function handleActionDrop(e) {
   e.preventDefault();
   updateActionOrders();
 }
 
-function handleDragEnd(e) {
+function handleActionDragEnd(e) {
   if (draggedElement) {
     draggedElement.classList.remove('dragging');
     draggedElement.draggable = false;
@@ -215,7 +494,7 @@ function handleDragEnd(e) {
 }
 
 function getDragAfterElement(container, y) {
-  const draggableElements = [...container.querySelectorAll('.action-item:not(.dragging)')];
+  const draggableElements = [...container.querySelectorAll('.action-item:not(.dragging), .menu-item:not(.dragging)')];
 
   return draggableElements.reduce((closest, child) => {
     const box = child.getBoundingClientRect();
@@ -238,23 +517,19 @@ function captureShortcut(shortcutInput) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Use e.code for physical key (not affected by modifiers on Mac)
     const code = e.code;
 
-    // Ignore if it's just a modifier key by itself
     if (['ControlLeft', 'ControlRight', 'AltLeft', 'AltRight',
          'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight'].includes(code)) {
-      return; // Keep listening for the actual key
+      return;
     }
 
-    // Build shortcut string
     const parts = [];
     if (e.ctrlKey) parts.push('Ctrl');
     if (e.altKey) parts.push('Alt');
     if (e.shiftKey) parts.push('Shift');
     if (e.metaKey) parts.push('Meta');
 
-    // Require at least one modifier
     if (parts.length === 0) {
       shortcutInput.value = '';
       shortcutInput.classList.remove('capturing');
@@ -263,17 +538,15 @@ function captureShortcut(shortcutInput) {
       return;
     }
 
-    // Convert code to display key
-    // e.code examples: "KeyA", "Digit1", "ArrowUp", "Space", "Enter"
     let displayKey;
     if (code.startsWith('Key')) {
-      displayKey = code.replace('Key', ''); // "KeyY" -> "Y"
+      displayKey = code.replace('Key', '');
     } else if (code.startsWith('Digit')) {
-      displayKey = code.replace('Digit', ''); // "Digit1" -> "1"
+      displayKey = code.replace('Digit', '');
     } else if (code.startsWith('Arrow')) {
-      displayKey = code.replace('Arrow', ''); // "ArrowUp" -> "Up"
+      displayKey = code.replace('Arrow', '');
     } else {
-      displayKey = code; // Use as-is for special keys like "Space", "Enter"
+      displayKey = code;
     }
 
     parts.push(displayKey);
@@ -281,10 +554,7 @@ function captureShortcut(shortcutInput) {
     const shortcutString = parts.join('+');
     shortcutInput.value = shortcutString;
 
-    // Show reload reminder since shortcut was changed
     reloadReminder.classList.remove('hidden');
-
-    // Check for duplicates
     checkShortcutDuplicate(shortcutInput, shortcutString);
 
     shortcutInput.classList.remove('capturing');
@@ -297,24 +567,225 @@ function captureShortcut(shortcutInput) {
 function checkShortcutDuplicate(currentInput, shortcut) {
   if (!shortcut) return;
 
-  const allShortcutInputs = document.querySelectorAll('.action-shortcut');
-  const currentActionItem = currentInput.closest('.action-item');
+  // Check against all shortcuts across all menus
+  let duplicate = null;
 
-  for (const input of allShortcutInputs) {
-    const actionItem = input.closest('.action-item');
-    const isEnabled = actionItem.querySelector('.action-enabled').checked;
-
-    // Skip if same action or if action is disabled
-    if (actionItem === currentActionItem || !isEnabled) continue;
-
-    if (input.value === shortcut) {
-      const actionTitle = actionItem.querySelector('.action-title').value;
-      showError(`This shortcut is already used by "${actionTitle}"`);
-      return;
+  currentConfig.menus.forEach(menu => {
+    // Check menu Run All shortcut
+    if (menu.runAllShortcut === shortcut) {
+      // Only warn if it's not the current input
+      if (currentInput !== runAllShortcutInput || menu.id !== selectedMenuId) {
+        duplicate = `"${menu.name}" - Run All`;
+      }
     }
+
+    // Check action shortcuts
+    menu.actions.forEach(action => {
+      if (action.enabled && action.shortcut === shortcut) {
+        // Check if it's not the current action being edited
+        const currentActionItem = currentInput.closest('.action-item');
+        const isCurrentAction = currentActionItem && currentActionItem.dataset.actionId === action.id;
+        const isCurrentMenu = menu.id === selectedMenuId;
+
+        if (!isCurrentAction || !isCurrentMenu) {
+          duplicate = `"${menu.name}" - ${action.title}`;
+        }
+      }
+    });
+  });
+
+  if (duplicate) {
+    showError(`This shortcut is already used by ${duplicate}`);
+  } else {
+    hideAllBanners();
+  }
+}
+
+// ====== SAVE MENU ======
+async function handleSave() {
+  if (!selectedMenuId) {
+    showError('No menu selected');
+    return;
   }
 
-  hideAllBanners();
+  try {
+    hideAllBanners();
+
+    document.querySelectorAll('.action-title, .action-prompt').forEach(input => {
+      input.classList.remove('error');
+    });
+
+    const menu = currentConfig.menus.find(m => m.id === selectedMenuId);
+    if (!menu) {
+      showError('Menu not found');
+      return;
+    }
+
+    // Update menu configuration from form
+    const menuName = menuNameInput.value.trim();
+    if (!menuName) {
+      menuNameInput.classList.add('error');
+      showError('Menu name is required');
+      return;
+    }
+
+    if (menuName.length > 50) {
+      menuNameInput.classList.add('error');
+      showError('Menu name must be 50 characters or less');
+      return;
+    }
+
+    menu.name = menuName;
+    menu.customGptUrl = customGptUrlInput.value.trim();
+    menu.autoSubmit = autoSubmitCheckbox.checked;
+    menu.runAllEnabled = runAllEnabledCheckbox.checked;
+    menu.runAllShortcut = runAllShortcutInput.value.trim();
+
+    // Collect actions from DOM
+    menu.actions = [];
+    let hasEmptyRequiredFields = false;
+
+    const actionItems = actionsListContainer.querySelectorAll('.action-item');
+    actionItems.forEach((item, index) => {
+      const id = item.dataset.actionId;
+      const titleInput = item.querySelector('.action-title');
+      const promptInput = item.querySelector('.action-prompt');
+      const shortcut = item.querySelector('.action-shortcut').value.trim();
+      const enabled = item.querySelector('.action-enabled').checked;
+
+      const title = titleInput.value.trim();
+      const prompt = promptInput.value.trim();
+
+      if (!title) {
+        titleInput.classList.add('error');
+        hasEmptyRequiredFields = true;
+      }
+
+      if (!prompt) {
+        promptInput.classList.add('error');
+        hasEmptyRequiredFields = true;
+      }
+
+      menu.actions.push({
+        id: id,
+        title: title,
+        prompt: prompt,
+        shortcut: shortcut,
+        enabled: enabled,
+        order: index + 1
+      });
+    });
+
+    if (hasEmptyRequiredFields) {
+      showError('Please fill in all required fields (Action Title and Prompt)');
+      return;
+    }
+
+    // Check for placeholder URL
+    if (menu.customGptUrl.includes('<<YOUR CUSTOM GPT URL>>')) {
+      showError('Please replace "<<YOUR CUSTOM GPT URL>>" with your actual Custom GPT URL');
+      return;
+    }
+
+    // Add version if missing
+    if (!currentConfig.version) {
+      currentConfig.version = 3;
+    }
+
+    // Validate entire config
+    const errors = validateConfig(currentConfig);
+    if (errors.length > 0) {
+      showError('Validation failed: ' + errors.join('; '));
+      return;
+    }
+
+    // Save
+    await saveConfig(currentConfig);
+
+    // Update menu list (name might have changed)
+    renderMenuList();
+
+    // Check if there are no actions
+    if (menu.actions.length === 0) {
+      showWarning(`Menu "${menu.name}" saved successfully! However, you have no actions configured. Add at least one action to use this menu.`);
+    } else {
+      showSuccess(`Menu "${menu.name}" saved successfully!`);
+    }
+
+    // Fade out reload reminder if visible
+    if (!reloadReminder.classList.contains('hidden')) {
+      setTimeout(() => {
+        reloadReminder.classList.add('fading-out');
+        setTimeout(() => {
+          reloadReminder.classList.add('hidden');
+          reloadReminder.classList.remove('fading-out');
+        }, 500);
+      }, 3000);
+    }
+  } catch (e) {
+    showError('Failed to save: ' + e.message);
+  }
+}
+
+// ====== EXPORT CONFIGURATION ======
+async function handleExport() {
+  try {
+    const config = await getConfig();
+
+    const jsonStr = JSON.stringify(config, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chatgpt-prompts-config.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showSuccess('Configuration exported successfully!');
+  } catch (e) {
+    showError('Failed to export: ' + e.message);
+  }
+}
+
+// ====== IMPORT CONFIGURATION ======
+function handleImportClick() {
+  importFileInput.click();
+}
+
+async function handleImportFile(e) {
+  try {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const importedConfig = JSON.parse(text);
+
+    const errors = validateConfig(importedConfig);
+    if (errors.length > 0) {
+      showError('Invalid configuration file: ' + errors.join('; '));
+      importFileInput.value = '';
+      return;
+    }
+
+    if (!confirm('Import this configuration? Current settings will be replaced.')) {
+      importFileInput.value = '';
+      return;
+    }
+
+    await saveConfig(importedConfig);
+    currentConfig = importedConfig;
+
+    await loadAndRender();
+
+    showSuccess('Configuration imported successfully!');
+    importFileInput.value = '';
+  } catch (e) {
+    showError('Failed to import: ' + e.message);
+    importFileInput.value = '';
+  }
 }
 
 // ====== BANNER HELPERS ======
@@ -331,7 +802,6 @@ function showWarning(message) {
   errorBanner.classList.add('hidden');
   successBanner.classList.add('hidden');
 
-  // Auto-hide after 5 seconds (longer than success)
   setTimeout(() => {
     warningBanner.classList.add('hidden');
   }, 5000);
@@ -343,7 +813,6 @@ function showSuccess(message) {
   errorBanner.classList.add('hidden');
   warningBanner.classList.add('hidden');
 
-  // Auto-hide after 3 seconds
   setTimeout(() => {
     successBanner.classList.add('hidden');
   }, 3000);
@@ -355,224 +824,6 @@ function hideAllBanners() {
   successBanner.classList.add('hidden');
 }
 
-// ====== SAVE CONFIGURATION ======
-async function handleSave() {
-  try {
-    hideAllBanners();
-
-    // Clear all previous error states
-    document.querySelectorAll('.action-title, .action-prompt').forEach(input => {
-      input.classList.remove('error');
-    });
-
-    // Build config from form and validate required fields
-    const newConfig = {
-      globalSettings: {
-        customGptUrl: customGptUrlInput.value.trim(),
-        gptTitleMatch: currentConfig.globalSettings.gptTitleMatch, // Preserved (not in UI)
-        contextMenuTitle: contextMenuTitleInput.value.trim(),
-        clearContext: currentConfig.globalSettings.clearContext, // Preserved (not in UI)
-        autoSubmit: autoSubmitCheckbox.checked,
-        runAllEnabled: runAllEnabledCheckbox.checked,
-        runAllShortcut: runAllShortcutInput.value.trim()
-      },
-      actions: []
-    };
-
-    // Collect actions from DOM and validate required fields
-    const actionItems = actionsListContainer.querySelectorAll('.action-item');
-    let hasEmptyRequiredFields = false;
-
-    actionItems.forEach((item, index) => {
-      const id = item.dataset.actionId;
-      const titleInput = item.querySelector('.action-title');
-      const promptInput = item.querySelector('.action-prompt');
-      const shortcut = item.querySelector('.action-shortcut').value.trim();
-      const enabled = item.querySelector('.action-enabled').checked;
-
-      const title = titleInput.value.trim();
-      const prompt = promptInput.value.trim();
-
-      // Validate required fields
-      if (!title) {
-        titleInput.classList.add('error');
-        hasEmptyRequiredFields = true;
-      }
-
-      if (!prompt) {
-        promptInput.classList.add('error');
-        hasEmptyRequiredFields = true;
-      }
-
-      newConfig.actions.push({
-        id: id,
-        title: title,
-        prompt: prompt,
-        shortcut: shortcut,
-        enabled: enabled,
-        order: index + 1
-      });
-    });
-
-    // If there are empty required fields, show error and don't save
-    if (hasEmptyRequiredFields) {
-      showError('Please fill in all required fields (Action Title and Prompt)');
-      return;
-    }
-
-    // Check for placeholder URL
-    if (newConfig.globalSettings.customGptUrl.includes('<<YOUR CUSTOM GPT URL>>')) {
-      showError('Please replace "<<YOUR CUSTOM GPT URL>>" with your actual Custom GPT URL');
-      return;
-    }
-
-    // Validate
-    const errors = validateConfig(newConfig);
-    if (errors.length > 0) {
-      showError('Validation failed: ' + errors.join('; '));
-      return;
-    }
-
-    // Save
-    await saveConfig(newConfig);
-    currentConfig = newConfig;
-
-    // Check if there are no actions - show warning but config is saved
-    if (newConfig.actions.length === 0) {
-      showWarning('Configuration saved successfully! However, you have no actions configured. Add at least one action to use the extension.');
-    } else {
-      showSuccess('Configuration saved successfully!');
-    }
-
-    // Fade out reload reminder if visible
-    if (!reloadReminder.classList.contains('hidden')) {
-      setTimeout(() => {
-        reloadReminder.classList.add('fading-out');
-        // After fade animation completes, add hidden class
-        setTimeout(() => {
-          reloadReminder.classList.add('hidden');
-          reloadReminder.classList.remove('fading-out');
-        }, 500); // Match CSS transition duration
-      }, 3000); // Wait 3 seconds before starting fade
-    }
-  } catch (e) {
-    showError('Failed to save: ' + e.message);
-  }
-}
-
-saveButton.addEventListener('click', handleSave);
-
-// ====== ADD ACTION ======
-function handleAddAction() {
-  // Generate unique ID
-  const timestamp = Date.now();
-  const randomStr = Math.random().toString(36).substring(2, 7);
-  const newId = `action_${timestamp}_${randomStr}`;
-
-  // Create new action data
-  const newAction = {
-    id: newId,
-    title: 'New Action',
-    prompt: '',
-    shortcut: '',
-    enabled: true,
-    order: actionsListContainer.children.length + 1
-  };
-
-  // Create and append element
-  const actionElement = createActionElement(newAction, actionsListContainer.children.length);
-  actionsListContainer.appendChild(actionElement);
-
-  // Focus on title input
-  const titleInput = actionElement.querySelector('.action-title');
-  titleInput.focus();
-  titleInput.select();
-}
-
-addActionButton.addEventListener('click', handleAddAction);
-
-// ====== CANCEL ======
-function handleCancel() {
-  if (confirm('Discard unsaved changes?')) {
-    loadAndRender();
-  }
-}
-
-cancelButton.addEventListener('click', handleCancel);
-
-// ====== EXPORT CONFIGURATION ======
-async function handleExport() {
-  try {
-    const config = await getConfig();
-
-    // Create JSON blob
-    const jsonStr = JSON.stringify(config, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'chatgpt-actions-config.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showSuccess('Configuration exported successfully!');
-  } catch (e) {
-    showError('Failed to export: ' + e.message);
-  }
-}
-
-exportButton.addEventListener('click', handleExport);
-
-// ====== IMPORT CONFIGURATION ======
-function handleImportClick() {
-  importFileInput.click();
-}
-
-async function handleImportFile(e) {
-  try {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const text = await file.text();
-    const importedConfig = JSON.parse(text);
-
-    // Validate imported config
-    const errors = validateConfig(importedConfig);
-    if (errors.length > 0) {
-      showError('Invalid configuration file: ' + errors.join('; '));
-      importFileInput.value = ''; // Clear file input
-      return;
-    }
-
-    // Confirm import
-    if (!confirm('Import this configuration? Current settings will be replaced.')) {
-      importFileInput.value = '';
-      return;
-    }
-
-    // Save imported config (getConfig will auto-migrate if needed)
-    await saveConfig(importedConfig);
-    currentConfig = importedConfig;
-
-    // Reload UI
-    await loadAndRender();
-
-    // Migration happens silently in the background
-    showSuccess('Configuration imported successfully!');
-    importFileInput.value = ''; // Clear file input
-  } catch (e) {
-    showError('Failed to import: ' + e.message);
-    importFileInput.value = '';
-  }
-}
-
-importButton.addEventListener('click', handleImportClick);
-importFileInput.addEventListener('change', handleImportFile);
-
 // ====== RUN ALL VISIBILITY TOGGLE ======
 function toggleRunAllShortcutVisibility() {
   if (runAllEnabledCheckbox.checked) {
@@ -582,11 +833,31 @@ function toggleRunAllShortcutVisibility() {
   }
 }
 
-// ====== INITIALIZATION ======
-document.addEventListener('DOMContentLoaded', () => {
-  loadAndRender();
+// ====== ATTACH EVENT LISTENERS ======
+function attachEventListeners() {
+  // Menu management
+  addMenuButton.addEventListener('click', handleAddMenu);
+  deleteMenuButton.addEventListener('click', handleDeleteMenu);
 
-  // Attach Run All shortcut capture button
+  // Menu name real-time update
+  menuNameInput.addEventListener('input', () => {
+    if (menuNameInput.value.trim()) {
+      menuNameInput.classList.remove('error');
+    }
+  });
+
+  // Actions
+  addActionButton.addEventListener('click', handleAddAction);
+
+  // Save
+  saveButton.addEventListener('click', handleSave);
+
+  // Export/Import
+  exportButton.addEventListener('click', handleExport);
+  importButton.addEventListener('click', handleImportClick);
+  importFileInput.addEventListener('change', handleImportFile);
+
+  // Run All shortcut capture
   runAllShortcutBtn.addEventListener('click', () => {
     captureShortcut(runAllShortcutInput);
   });
@@ -596,7 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       runAllShortcutInput.value = '';
-      // Show reload reminder since shortcut was changed
       reloadReminder.classList.remove('hidden');
       hideAllBanners();
     }
@@ -604,4 +874,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Toggle Run All shortcut visibility when checkbox changes
   runAllEnabledCheckbox.addEventListener('change', toggleRunAllShortcutVisibility);
-});
+}
