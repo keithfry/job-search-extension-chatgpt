@@ -497,8 +497,58 @@ Based on user feedback:
 
 ---
 
+## Parallel Execution Strategy
+
+To speed up implementation, we can use subagents to work on independent pieces in parallel:
+
+### Batch 1: Foundation (Sequential)
+Must be completed first as other work depends on it:
+- **Main agent**: Data model changes (config.js, default-config.json)
+  - Update to V3 structure
+  - Implement migration
+  - Update validation
+
+### Batch 2: Independent Components (Parallel)
+Can be done simultaneously once Batch 1 is complete:
+- **Subagent A**: UI HTML structure (options.html)
+  - Create sidebar layout
+  - Add menu list template
+  - Restructure global settings section
+
+- **Subagent B**: UI Styling (options.css)
+  - Layout styles (flexbox/grid)
+  - Menu list styles
+  - Responsive adjustments
+
+- **Subagent C**: Background script (background.js)
+  - Multi-menu context menu building
+  - Update click handlers
+  - Update shortcut handling
+
+### Batch 3: Integration (Sequential)
+Requires Batch 2 completion:
+- **Main agent**: Options page logic (options.js)
+  - Integrate with new HTML structure
+  - Implement menu management
+  - Connect to config changes
+
+### Batch 4: Quality Assurance (Parallel)
+Can be done simultaneously:
+- **Subagent A**: Playwright tests
+  - Write automated tests for new features
+  - Test migration scenarios
+
+- **Subagent B**: Documentation
+  - Update README.md
+  - Update CHANGELOG.md
+  - Add screenshots
+
+### Batch 5: Finalization (Sequential)
+- **Main agent**: Manual testing, bug fixes, code review
+
 ## Timeline Estimate
 
+### Without Parallelization
 - **Phase 1-2** (Data model): 4-6 hours
 - **Phase 3** (UI redesign): 6-8 hours
 - **Phase 4** (Options logic): 6-8 hours
@@ -507,7 +557,16 @@ Based on user feedback:
 - **Phase 7** (Documentation): 2-3 hours
 - **Phase 8** (Review & fixes): 3-4 hours
 
-**Total**: 29-41 hours (~4-5 days of focused work)
+**Total Sequential**: 29-41 hours (~4-5 days)
+
+### With Parallelization (3 subagents)
+- **Batch 1** (Foundation): 4-6 hours
+- **Batch 2** (Parallel - 3 agents): 6-8 hours (longest of the 3)
+- **Batch 3** (Integration): 6-8 hours
+- **Batch 4** (Parallel - 2 agents): 4-6 hours (longest of the 2)
+- **Batch 5** (Finalization): 3-4 hours
+
+**Total Parallel**: 23-32 hours (~3-4 days) - **~25% faster**
 
 ---
 
