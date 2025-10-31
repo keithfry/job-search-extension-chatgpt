@@ -1,0 +1,27 @@
+{
+  "name": "chatgpt-query-extension",
+  "version": "1.0.0",
+  "description": "A Chrome extension that allows you to send selected text to your custom ChatGPT assistant with configurable custom prompts, shortcuts, and settings.",
+  "main": "background.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frybynite/chatgpt-query-extension.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/frybynite/chatgpt-query-extension/issues"
+  },
+  "homepage": "https://github.com/frybynite/chatgpt-query-extension#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  }
+}

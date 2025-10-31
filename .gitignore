@@ -2,3 +2,5 @@
 worktrees/
 build/
 build-temp/
+node_modules/
+test-results/
