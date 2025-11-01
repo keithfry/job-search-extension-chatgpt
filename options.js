@@ -303,7 +303,7 @@ function handleMenuDragEnd(e) {
   }
 }
 
-function updateMenuOrders() {
+async function updateMenuOrders() {
   const menuItems = menuListContainer.querySelectorAll('.menu-item');
   menuItems.forEach((item, index) => {
     const menuId = item.dataset.menuId;
@@ -312,6 +312,14 @@ function updateMenuOrders() {
       menu.order = index + 1;
     }
   });
+
+  // Auto-save the new order
+  try {
+    await saveConfig(currentConfig);
+    showSuccess('Menu order updated');
+  } catch (e) {
+    showError('Failed to save menu order: ' + e.message);
+  }
 }
 
 // ====== ACTIONS RENDERING ======
