@@ -1,6 +1,8 @@
 import { test as base, chromium } from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +20,11 @@ export const test = base.extend({
     // Path to extension directory (project root)
     const extensionPath = path.resolve(__dirname, '../..');
 
+    // Create a temporary user data directory for this test
+    const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'playwright-chrome-'));
+
     // Launch browser with extension loaded
-    const context = await chromium.launchPersistentContext('', {
+    const context = await chromium.launchPersistentContext(userDataDir, {
       headless: false, // Extensions don't work in headless mode
       args: [
         `--disable-extensions-except=${extensionPath}`,
@@ -31,6 +36,13 @@ export const test = base.extend({
 
     await use(context);
     await context.close();
+
+    // Clean up temp directory
+    try {
+      fs.rmSync(userDataDir, { recursive: true, force: true });
+    } catch (e) {
+      // Ignore cleanup errors
+    }
   },
 
   extensionId: async ({ context }, use) => {
@@ -45,9 +57,22 @@ export const test = base.extend({
   },
 
   optionsPage: async ({ context, extensionId }, use) => {
-    // Open the options page
-    const page = await context.newPage();
+    // Get the first page or create new one
+    const pages = context.pages();
+    const page = pages.length > 0 ? pages[0] : await context.newPage();
     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    await page.waitForLoadState('networkidle');
+
+    // Add helper method to safely reload the options page
+    page.reloadOptions = async () => {
+      // Use goto with waitUntil to ensure page is ready
+      await page.goto(`chrome-extension://${extensionId}/options.html`, {
+        waitUntil: 'networkidle',
+      });
+      // Extra wait for extension to initialize
+      await page.waitForTimeout(500);
+    };
+
     await use(page);
   },
 });
