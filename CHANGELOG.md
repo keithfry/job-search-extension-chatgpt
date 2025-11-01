@@ -5,6 +5,51 @@ All notable changes to ChatGPT Custom Prompts extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-11-01
+
+### Added
+- **Multiple Independent Menus**: Create up to 10 separate menu configurations
+  - Each menu has its own name (becomes the context menu title)
+  - Each menu has its own Custom GPT URL
+  - Each menu has its own Auto Submit setting
+  - Each menu has its own Run All configuration
+  - Each menu has its own independent list of actions
+- **List + Detail UI Layout**: New sidebar design for managing multiple menus
+  - Left sidebar shows all menus with selection and reordering
+  - Right panel shows selected menu's configuration and actions
+  - Menu counter displays "X/10 menus"
+  - Add Menu button for creating new menus
+- **Per-Menu Settings**: All configuration scoped to individual menus
+  - GPT URL configuration per menu
+  - Auto Submit toggle per menu
+  - Run All feature per menu with independent shortcuts
+- **Enhanced Testing**: Comprehensive Playwright test suite
+  - 15+ automated tests covering core functionality
+  - Smoke tests, UI tests, context menu tests, action execution tests
+  - Test infrastructure for ongoing quality assurance
+- **Automatic Migration**: V2 → V3 config migration on first load
+  - Preserves existing menu name and settings
+  - Creates single menu from V2 configuration
+  - Seamless upgrade path
+
+### Changed
+- Config structure updated to support multiple menus (V3 format)
+- Global settings reduced to only `gptTitleMatch` and `clearContext`
+- Context menu now shows multiple menu entries (grouped by Chrome)
+- Options page redesigned with sidebar + detail panel layout
+- Menu management now primary workflow in options UI
+
+### Breaking Changes
+- Configuration structure changed from V2 to V3 format
+- V2 configs automatically migrated but cannot be rolled back
+- Export/import format updated to include multiple menus
+
+### Improved
+- User can now organize different GPTs into separate menus (work, personal, etc.)
+- Each GPT can have its own set of actions and settings
+- Better scalability for users with multiple custom GPTs
+- Cleaner UI organization with sidebar navigation
+
 ## [2.2.1] - 2025-10-31
 
 ### Changed

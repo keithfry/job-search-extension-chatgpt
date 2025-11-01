@@ -4,14 +4,15 @@ A Chrome extension that allows you to send selected text to your custom ChatGPT 
 
 ## Features
 
+- **Multiple Menus** ✨ **NEW in v3.0.0**: Create up to 10 independent menu configurations, each with its own GPT URL, actions, and settings
 - **Fully Configurable**: Configure all actions, shortcuts, and settings via options page
 - **Custom Actions**: Add, edit, remove, and reorder actions without code changes
 - **Custom Shortcuts**: Assign any keyboard shortcut to any action
 - **Import/Export**: Backup and share configurations via JSON
-- **Context Menu Integration**: Right-click selected text to send it to your custom GPT
+- **Context Menu Integration**: Right-click selected text to send it to your custom GPT(s)
 - **Smart Tab Management**: Automatically opens or focuses your GPT tab
-- **Auto-Submit**: Optionally submit prompts automatically for hands-free operation
-- **Parallel Processing**: Run all actions simultaneously in separate tabs
+- **Auto-Submit**: Optionally submit prompts automatically for hands-free operation (per-menu)
+- **Parallel Processing**: Run all actions simultaneously in separate tabs (per-menu)
 - **Robust Injection**: Automatic retry on failure with fresh context option
 
 ## Installation
@@ -29,10 +30,15 @@ A Chrome extension that allows you to send selected text to your custom ChatGPT 
 **v2.0.0 and later:** All configuration is done through the options page (chrome://extensions → Details → Extension options).
 
 **Configuration Options:**
-- **Custom GPT URL**: Your custom GPT URL (e.g., https://chatgpt.com/g/g-...)
-- **Context Menu Title**: Customize the right-click menu title
-- **Auto Submit**: Set to enable/disable automatically submitting prompts
-- **Enable Run All Actions**: Show/hide the "Run All" feature with configurable shortcut
+- **Multiple Menus** (v3.0.0+): Create up to 10 separate menu configurations
+  - Each menu has its own name (becomes the context menu title)
+  - Each menu has its own Custom GPT URL
+  - Each menu has its own Auto Submit setting
+  - Each menu has its own Run All configuration
+  - Each menu has its own list of actions
+- **Custom GPT URL**: Your custom GPT URL per menu (e.g., https://chatgpt.com/g/g-...)
+- **Auto Submit**: Enable/disable per menu for automatically submitting prompts
+- **Enable Run All Actions**: Per-menu "Run All" feature with configurable shortcut
 - **Actions**: Add, edit, remove, and reorder actions with custom prompts and shortcuts
 
 **For v1.6.0 and earlier users:** Your existing configuration will be automatically migrated to the new options page on first load.
@@ -155,6 +161,7 @@ Potential improvements for future versions:
 - ~~Options page for configuration~~ **✅ Completed in v2.0.0**
 - ~~Support for multiple custom actions~~ **✅ Completed in v2.0.0**
 - ~~Configurable keyboard shortcuts~~ **✅ Completed in v2.0.0**
+- ~~Multiple independent menus~~ **✅ Completed in v3.0.0**
 - Extension icon and branding
 - Configurable retry timing
 - Status notifications instead of alerts
@@ -164,7 +171,16 @@ Potential improvements for future versions:
 
 ## Version History
 
-### 2.0.0 (Current) - **Major Update: Fully Configurable**
+### 3.0.0 (Current) - **Major Update: Multiple Menus**
+- **Multiple Independent Menus**: Create up to 10 separate menu configurations
+- **Per-Menu Settings**: Each menu has its own GPT URL, auto-submit, and Run All configuration
+- **Per-Menu Actions**: Each menu maintains its own independent list of actions
+- **List + Detail UI**: New sidebar layout for easy menu management
+- **Enhanced Testing**: Comprehensive Playwright test suite (15+ tests)
+- **Migration**: Automatic V2 → V3 configuration migration
+- **Breaking Change**: Config structure updated to support multiple menus
+
+### 2.0.0 - **Major Update: Fully Configurable**
 - **Options Page**: Full configuration UI for all settings
 - **Custom Actions**: Add, edit, remove, and reorder actions
 - **Custom Shortcuts**: Assign any keyboard shortcut to any action with Mac compatibility
