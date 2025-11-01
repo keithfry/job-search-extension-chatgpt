@@ -311,12 +311,19 @@ Based on user feedback:
 - [x] Update `runAllActions()`:
   - [x] Accept menu parameter
   - [x] Use menu's customGptUrl and autoSubmit
-  - [ ] Run only that menu's actions
-- [ ] Update `handleShortcutExecution()`:
-  - [ ] Find menu from shortcut map
-  - [ ] Use menu's settings
+  - [x] Run only that menu's actions
+- [x] Update `handleShortcutExecution()`:
+  - [x] Find menu from shortcut map
+  - [x] Use menu's settings
 
 ### Phase 6: Testing
+- [x] **Setup Playwright** (completed 2025-11-01):
+  - [x] Created playwright.config.js
+  - [x] Created test directory structure
+  - [x] Created extension loading fixtures
+  - [x] Created smoke tests (2/2 passing)
+  - [x] Installed Chromium browser
+  - [x] Updated package.json with test scripts
 - [ ] Write Playwright tests:
   - [ ] Test: Navigate to options page, verify default menu
   - [ ] Test: Create new menu
