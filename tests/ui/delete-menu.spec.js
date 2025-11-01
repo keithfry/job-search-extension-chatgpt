@@ -57,10 +57,10 @@ test.describe('UI Tests - Delete Menu', () => {
     console.log(`Menu count before deletion: ${beforeCount}`);
 
     // Set up dialog handler to accept the confirmation
-    page.on('dialog', async (dialog) => {
+    optionsPage.on('dialog', dialog => {
       console.log(`Confirmation dialog: "${dialog.message()}"`);
       expect(dialog.message()).toContain('Delete');
-      await dialog.accept();
+      dialog.accept();
     });
 
     // Click delete
@@ -106,9 +106,9 @@ test.describe('UI Tests - Delete Menu', () => {
     const beforeCount = await menuItems.count();
 
     // Set up dialog handler to CANCEL
-    page.on('dialog', async (dialog) => {
+    optionsPage.on('dialog', dialog => {
       console.log(`Canceling deletion dialog`);
-      await dialog.dismiss();
+      dialog.dismiss();
     });
 
     // Click delete
@@ -158,9 +158,7 @@ test.describe('UI Tests - Delete Menu', () => {
     await optionsPage.waitForTimeout(200);
 
     // Accept deletion dialog
-    page.on('dialog', async (dialog) => {
-      await dialog.accept();
-    });
+    optionsPage.on('dialog', dialog => dialog.accept());
 
     const deleteBtn = optionsPage.locator('#delete-menu');
     await deleteBtn.click();
@@ -206,9 +204,7 @@ test.describe('UI Tests - Delete Menu', () => {
     console.log(`Counter after add: ${afterAddText}`);
 
     // Accept deletion
-    page.on('dialog', async (dialog) => {
-      await dialog.accept();
-    });
+    optionsPage.on('dialog', dialog => dialog.accept());
 
     // Delete the menu
     const deleteBtn = optionsPage.locator('#delete-menu');
@@ -255,10 +251,10 @@ test.describe('UI Tests - Delete Menu', () => {
 
     // Capture the dialog message
     let dialogMessage = '';
-    page.on('dialog', async (dialog) => {
+    optionsPage.on('dialog', dialog => {
       dialogMessage = dialog.message();
       console.log(`Dialog message: "${dialogMessage}"`);
-      await dialog.accept();
+      dialog.accept();
     });
 
     // Delete the menu
