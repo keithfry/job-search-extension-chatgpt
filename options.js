@@ -572,38 +572,126 @@ function captureShortcut(shortcutInput) {
 function checkShortcutDuplicate(currentInput, shortcut) {
   if (!shortcut) return;
 
-  // Check against all shortcuts across all menus
-  let duplicate = null;
+  // Build a temporary config with current DOM state
+  const isRunAllInput = (currentInput === runAllShortcutInput);
+  let tempConfig = JSON.parse(JSON.stringify(currentConfig)); // Deep clone
 
-  currentConfig.menus.forEach(menu => {
-    // Check menu Run All shortcut
-    if (menu.runAllShortcut === shortcut) {
-      // Only warn if it's not the current input
-      if (currentInput !== runAllShortcutInput || menu.id !== selectedMenuId) {
-        duplicate = `"${menu.name}" - Run All`;
+  // Update the current menu with DOM state (in case there are unsaved changes)
+  if (selectedMenuId) {
+    const menu = tempConfig.menus.find(m => m.id === selectedMenuId);
+    if (menu) {
+      // Update Run All settings from form
+      menu.runAllEnabled = runAllEnabledCheckbox.checked;
+      menu.runAllShortcut = runAllShortcutInput.value.trim();
+
+      // Collect current actions from DOM
+      menu.actions = [];
+      const actionItems = actionsListContainer.querySelectorAll('.action-item');
+      actionItems.forEach((item, index) => {
+        const actionId = item.dataset.actionId;
+        const title = item.querySelector('.action-title').value.trim();
+        const shortcutVal = item.querySelector('.action-shortcut').value.trim();
+
+        menu.actions.push({
+          id: actionId,
+          title: title || 'Unnamed',
+          prompt: '',
+          shortcut: shortcutVal,
+          enabled: true,
+          order: index + 1
+        });
+      });
+    }
+  }
+
+  // Now update the specific shortcut being set
+  if (isRunAllInput) {
+    const menu = tempConfig.menus.find(m => m.id === selectedMenuId);
+    if (menu) {
+      menu.runAllShortcut = shortcut;
+    }
+  } else {
+    const currentActionItem = currentInput.closest('.action-item');
+    if (currentActionItem) {
+      const actionId = currentActionItem.dataset.actionId;
+      const menu = tempConfig.menus.find(m => m.id === selectedMenuId);
+      if (menu) {
+        const action = menu.actions.find(a => a.id === actionId);
+        if (action) {
+          action.shortcut = shortcut;
+        }
       }
     }
+  }
 
-    // Check action shortcuts
+  // Check for conflicts in the simulated config
+  const conflicts = checkAllShortcutConflicts(tempConfig);
+
+  if (conflicts.length > 0) {
+    // Find the conflict involving this shortcut
+    const thisConflict = conflicts.find(c => c.shortcut === shortcut);
+    if (thisConflict) {
+      const locationDescriptions = thisConflict.locations.map(loc =>
+        `"${loc.menuName}" - ${loc.actionTitle}`
+      );
+      showError(`This shortcut is already used by: ${locationDescriptions.join(' and ')}`);
+    }
+  } else {
+    hideAllBanners();
+  }
+}
+
+// ====== SHORTCUT CONFLICT DETECTION ======
+function checkAllShortcutConflicts(config) {
+  const conflicts = [];
+  const shortcutMap = new Map(); // shortcut -> array of {menuName, actionTitle, menuId, actionId}
+
+  // Build a map of all shortcuts
+  config.menus.forEach(menu => {
+    // Check Run All shortcuts
+    if (menu.runAllEnabled && menu.runAllShortcut) {
+      const shortcut = menu.runAllShortcut;
+      if (!shortcutMap.has(shortcut)) {
+        shortcutMap.set(shortcut, []);
+      }
+      shortcutMap.get(shortcut).push({
+        menuName: menu.name,
+        actionTitle: 'Run All',
+        menuId: menu.id,
+        actionId: null,
+        isRunAll: true
+      });
+    }
+
+    // Check action shortcuts (only enabled actions with shortcuts matter)
     menu.actions.forEach(action => {
-      if (action.enabled && action.shortcut === shortcut) {
-        // Check if it's not the current action being edited
-        const currentActionItem = currentInput.closest('.action-item');
-        const isCurrentAction = currentActionItem && currentActionItem.dataset.actionId === action.id;
-        const isCurrentMenu = menu.id === selectedMenuId;
-
-        if (!isCurrentAction || !isCurrentMenu) {
-          duplicate = `"${menu.name}" - ${action.title}`;
+      if (action.shortcut) {
+        const shortcut = action.shortcut;
+        if (!shortcutMap.has(shortcut)) {
+          shortcutMap.set(shortcut, []);
         }
+        shortcutMap.get(shortcut).push({
+          menuName: menu.name,
+          actionTitle: action.title,
+          menuId: menu.id,
+          actionId: action.id,
+          isRunAll: false
+        });
       }
     });
   });
 
-  if (duplicate) {
-    showError(`This shortcut is already used by ${duplicate}`);
-  } else {
-    hideAllBanners();
-  }
+  // Find conflicts (shortcuts used more than once)
+  shortcutMap.forEach((locations, shortcut) => {
+    if (locations.length > 1) {
+      conflicts.push({
+        shortcut: shortcut,
+        locations: locations
+      });
+    }
+  });
+
+  return conflicts;
 }
 
 // ====== SAVE MENU ======
@@ -689,6 +777,19 @@ async function handleSave() {
     // Check for placeholder URL
     if (menu.customGptUrl.includes('<<YOUR CUSTOM GPT URL>>')) {
       showError('Please replace "<<YOUR CUSTOM GPT URL>>" with your actual Custom GPT URL');
+      return;
+    }
+
+    // Check for shortcut conflicts BEFORE saving
+    const conflicts = checkAllShortcutConflicts(currentConfig);
+    if (conflicts.length > 0) {
+      const errorMessages = conflicts.map(conflict => {
+        const locationDescriptions = conflict.locations.map(loc =>
+          `"${loc.menuName}" - ${loc.actionTitle}`
+        );
+        return `Shortcut "${conflict.shortcut}" is used by: ${locationDescriptions.join(' and ')}`;
+      });
+      showError('Shortcut conflicts detected:\n' + errorMessages.join('\n'));
       return;
     }
 
