@@ -41,6 +41,11 @@ test.describe('UI Tests - Delete Menu', () => {
     await menuNameInput.clear();
     await menuNameInput.fill(uniqueName);
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
     // Save it
     const saveBtn = optionsPage.locator('#save');
     await saveBtn.click();
@@ -87,6 +92,11 @@ test.describe('UI Tests - Delete Menu', () => {
     await menuNameInput.clear();
     await menuNameInput.fill(uniqueName);
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
     const saveBtn = optionsPage.locator('#save');
     await saveBtn.click();
     await optionsPage.waitForTimeout(300);
@@ -128,6 +138,12 @@ test.describe('UI Tests - Delete Menu', () => {
       const addMenuBtn = optionsPage.locator('#add-menu');
       await addMenuBtn.click();
       await optionsPage.waitForTimeout(200);
+
+      // Set a valid URL to pass validation
+      const customGptUrlInput = optionsPage.locator('#customGptUrl');
+      await customGptUrlInput.clear();
+      await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
       const saveBtn = optionsPage.locator('#save');
       await saveBtn.click();
       await optionsPage.waitForTimeout(300);
@@ -177,6 +193,11 @@ test.describe('UI Tests - Delete Menu', () => {
     await addMenuBtn.click();
     await optionsPage.waitForTimeout(200);
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
     const saveBtn = optionsPage.locator('#save');
     await saveBtn.click();
     await optionsPage.waitForTimeout(300);
@@ -207,6 +228,11 @@ test.describe('UI Tests - Delete Menu', () => {
     const addMenuBtn = optionsPage.locator('#add-menu');
     await addMenuBtn.click();
     await optionsPage.waitForTimeout(200);
+
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
 
     // Add an action
     const addActionBtn = optionsPage.locator('#add-action');

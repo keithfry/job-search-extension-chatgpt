@@ -24,6 +24,11 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     await menuNameInput.clear();
     await menuNameInput.fill('Conflict Test');
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
     const addActionBtn = optionsPage.locator('#add-action');
 
     // Add action 1
@@ -97,6 +102,11 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     await menuNameInput.clear();
     await menuNameInput.fill('Menu A');
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
     await addActionBtn.click();
     await optionsPage.waitForTimeout(200);
 
@@ -128,6 +138,10 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
 
     await menuNameInput.clear();
     await menuNameInput.fill('Menu B');
+
+    // Set a valid URL to pass validation
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test456');
 
     await addActionBtn.click();
     await optionsPage.waitForTimeout(200);
@@ -174,6 +188,11 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     const menuNameInput = optionsPage.locator('#menuName');
     await menuNameInput.clear();
     await menuNameInput.fill('Run All Menu');
+
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test789');
 
     // Enable Run All
     const runAllCheckbox = optionsPage.locator('#runAllEnabled');
@@ -240,6 +259,11 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     await menuNameInput.clear();
     await menuNameInput.fill('Menu Disabled 1');
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-testdis1');
+
     await addActionBtn.click();
     await optionsPage.waitForTimeout(200);
 
@@ -273,6 +297,10 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     await menuNameInput.clear();
     await menuNameInput.fill('Menu Disabled 2');
 
+    // Set a valid URL to pass validation
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-testdis2');
+
     await addActionBtn.click();
     await optionsPage.waitForTimeout(200);
 
@@ -296,17 +324,17 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     await optionsPage.keyboard.up('Control');
     await optionsPage.waitForTimeout(300);
 
-    // Since both are disabled, conflict detection might not trigger
-    // Check if error is shown - implementation may vary
+    // Since both are disabled, conflict detection should still trigger
+    // (disabled actions with shortcuts are still registered in the system)
     const errorBanner = optionsPage.locator('#error-banner');
     const isVisible = await errorBanner.isVisible();
 
-    if (!isVisible) {
-      console.log('✓ No conflict for disabled actions (as expected)');
-    } else {
-      const errorText = await errorBanner.textContent();
-      console.log(`Note: Conflict detected even for disabled actions: ${errorText}`);
-    }
+    // We expect conflict to be detected even for disabled actions
+    // because shortcuts are registered at the browser level
+    expect(isVisible).toBe(true);
+    const errorText = await errorBanner.textContent();
+    expect(errorText.toLowerCase()).toContain('already');
+    console.log(`✓ Conflict detected for disabled actions: ${errorText}`);
   });
 
   test('should update conflict check when editing existing shortcut', async ({ optionsPage }) => {
@@ -323,6 +351,11 @@ test.describe('Shortcut Tests - Conflict Detection', () => {
     const menuNameInput = optionsPage.locator('#menuName');
     await menuNameInput.clear();
     await menuNameInput.fill('Edit Shortcut Test');
+
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-testedit');
 
     // Add two actions
     await addActionBtn.click();

@@ -30,6 +30,11 @@ test.describe('UI Tests - Switch Between Menus', () => {
         await menuNameInput.clear();
         await menuNameInput.fill(`Menu ${i + 1}`);
 
+        // Set a valid URL to pass validation
+        const customGptUrlInput = optionsPage.locator('#customGptUrl');
+        await customGptUrlInput.clear();
+        await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
         const saveBtn = optionsPage.locator('#save');
         await saveBtn.click();
         await optionsPage.waitForTimeout(300);
@@ -57,7 +62,9 @@ test.describe('UI Tests - Switch Between Menus', () => {
     const secondName = await menuNameInput.inputValue();
     console.log(`Second menu name: "${secondName}"`);
 
-    // Names should be different
+    // Names should be different and both should exist
+    expect(firstName).toBeTruthy();
+    expect(secondName).toBeTruthy();
     expect(firstName).not.toBe(secondName);
     console.log('✓ Detail panel updated when switching menus');
   });
@@ -73,6 +80,12 @@ test.describe('UI Tests - Switch Between Menus', () => {
       const addMenuBtn = optionsPage.locator('#add-menu');
       await addMenuBtn.click();
       await optionsPage.waitForTimeout(200);
+
+      // Set a valid URL to pass validation
+      const customGptUrlInput = optionsPage.locator('#customGptUrl');
+      await customGptUrlInput.clear();
+      await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
       const saveBtn = optionsPage.locator('#save');
       await saveBtn.click();
       await optionsPage.waitForTimeout(300);
@@ -113,6 +126,11 @@ test.describe('UI Tests - Switch Between Menus', () => {
     await menuNameInput.clear();
     await menuNameInput.fill('Menu with Action A');
 
+    // Set a valid URL to pass validation
+    const customGptUrlInput = optionsPage.locator('#customGptUrl');
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test123');
+
     // Add action A
     const addActionBtn = optionsPage.locator('#add-action');
     await addActionBtn.click();
@@ -137,6 +155,10 @@ test.describe('UI Tests - Switch Between Menus', () => {
 
     await menuNameInput.clear();
     await menuNameInput.fill('Menu with Action B');
+
+    // Set a valid URL to pass validation
+    await customGptUrlInput.clear();
+    await customGptUrlInput.fill('https://chatgpt.com/g/g-test456');
 
     // Add action B
     await addActionBtn.click();
